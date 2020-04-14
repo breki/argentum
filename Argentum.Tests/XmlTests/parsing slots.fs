@@ -56,36 +56,60 @@ let buildXml xml =
     xmlReader.Read() |> ignore
     xmlReader
 
+let expectEndElement (value: 'T) (reader: XmlReader)
+    : Result<'T, string> =
+    if reader.Read() then
+        match reader.NodeType with
+        | XmlNodeType.EndElement -> Ok value
+        | nodeType ->
+            sprintf "Expected XML element end, got '%A'" nodeType
+            |> Error    
+    else
+        Error "Unexpected end of XML"
+
+let readElementText (reader: XmlReader): Result<string, string> =
+    if reader.Read() then
+        match reader.NodeType with
+        | XmlNodeType.Text ->
+            expectEndElement (reader.Value) reader
+        | nodeType ->
+            sprintf "Expected XML element element, got '%A'" nodeType
+            |> Error
+    else
+        Error "Unexpected end of XML"
+
 let parseSlot (reader: XmlReader): Result<Slot, string> =
     let slotKey =
         match reader.NodeType with
         | XmlNodeType.Element ->
             match reader.LocalName with
-            | "key" -> Ok reader.Value
+            | "key" -> readElementText reader
             | elementName ->
                 sprintf "Expected 'key' element, got '%s'" elementName
                 |> Error
         | nodeType ->
-            sprintf "Expected XML element element, got '%A'" nodeType
+            sprintf "Expected XML element, got '%A'" nodeType
             |> Error
 
-    match slotKey with
-    | Error err -> Error err
-    | Ok slotKey ->
+    slotKey
+    |> Result.bind (fun slotKey ->
         if reader.Read() then
             match reader.NodeType with
             | XmlNodeType.Element ->
                 match reader.LocalName with
                 | "value" ->
-                    Ok { Key = slotKey; Value = SlotString(reader.Value)}
+                    let valueResult = readElementText reader
+                    valueResult
+                    |> Result.bind (fun value -> 
+                        Ok { Key = slotKey; Value = SlotString(value)})
                 | elementName ->
                     sprintf "Expected 'key' element, got '%s'" elementName
                     |> Error
             | nodeType ->
-                sprintf "Expected XML element element, got '%A'" nodeType
+                sprintf "Expected XML element, got '%A'" nodeType
                 |> Error
         else
-            Error "Unexpected end of XML"
+            Error "Unexpected end of XML")
 
 [<Fact>]
 let ``Can parse string slot``() =
