@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ContentModelStore">
+    <e p="C:\Users\igorb.FROSTI\.Rider2019.3\system\extResources" t="IncludeRecursive" />
+    <e p="D:\src\Argentum" t="IncludeRecursive">
+      <e p="_ReSharper.Caches\ReSharperHost193.Argentum.00" t="ExcludeRecursive" />
+      <e p="Argentum.fsproj" t="IncludeRecursive" />
+      <e p="Argentum.sln" t="IncludeFlat" />
+      <e p="bin" t="ExcludeRecursive" />
+      <e p="docs" t="Include" />
+      <e p="obj" t="ExcludeRecursive" />
+      <e p="packages" t="ExcludeRecursive" />
+      <e p="Program.fs" t="Include" />
+      <e p="TODO.md" t="Include" />
+    </e>
+  </component>
+</project>
