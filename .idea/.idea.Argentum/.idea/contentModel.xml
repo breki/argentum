@@ -3,9 +3,9 @@
   <component name="ContentModelStore">
     <e p="C:\Users\igorb.FROSTI\.nuget\packages\microsoft.testplatform.testhost\16.5.0\build\netcoreapp2.1\x64\testhost.dll" t="Include" />
     <e p="C:\Users\igorb.FROSTI\.nuget\packages\microsoft.testplatform.testhost\16.5.0\build\netcoreapp2.1\x64\testhost.exe" t="Include" />
-    <e p="C:\Users\igorb.FROSTI\.nuget\packages\xunit.runner.visualstudio\2.4.0\build\netcoreapp1.0\xunit.runner.reporters.netcoreapp10.dll" t="Include" />
-    <e p="C:\Users\igorb.FROSTI\.nuget\packages\xunit.runner.visualstudio\2.4.0\build\netcoreapp1.0\xunit.runner.utility.netcoreapp10.dll" t="Include" />
-    <e p="C:\Users\igorb.FROSTI\.nuget\packages\xunit.runner.visualstudio\2.4.0\build\netcoreapp1.0\xunit.runner.visualstudio.dotnetcore.testadapter.dll" t="Include" />
+    <e p="C:\Users\igorb.FROSTI\.nuget\packages\xunit.runner.visualstudio\2.4.1\build\netcoreapp1.0\xunit.runner.reporters.netcoreapp10.dll" t="Include" />
+    <e p="C:\Users\igorb.FROSTI\.nuget\packages\xunit.runner.visualstudio\2.4.1\build\netcoreapp1.0\xunit.runner.utility.netcoreapp10.dll" t="Include" />
+    <e p="C:\Users\igorb.FROSTI\.nuget\packages\xunit.runner.visualstudio\2.4.1\build\netcoreapp1.0\xunit.runner.visualstudio.dotnetcore.testadapter.dll" t="Include" />
     <e p="C:\Users\igorb.FROSTI\.Rider2019.3\system\extResources" t="IncludeRecursive" />
     <e p="D:\src\Argentum" t="IncludeFlat">
       <e p="_ReSharper.Caches\ReSharperHost193.Argentum.00" t="ExcludeRecursive" />
@@ -23,6 +23,9 @@
         <e p="obj" t="ExcludeRecursive" />
         <e p="Program.fs" t="Include" />
         <e p="Tests.fs" t="Include" />
+        <e p="XmlTests" t="Include">
+          <e p="parsing slots.fs" t="Include" />
+        </e>
       </e>
       <e p="build" t="Include" />
       <e p="build.bat" t="Include" />

@@ -1,7 +1,7 @@
 # Argentum to do
 
 - design the model from the GnuCash XML file
-    - https://wiki.gnucash.org/wiki/GnuCash_XML_format
+    - implement property testing that (de)serializes data to XML
 - implement an XML reader for the model
 - import command line parsing code from Demetron
 - prepare a command to anonymize a GnuCash XML file
