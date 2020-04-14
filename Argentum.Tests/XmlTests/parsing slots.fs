@@ -1,5 +1,7 @@
 ﻿module Argentum.Tests.XmlTests.``parsing slots``
 
+open System
+open System.Globalization
 open System.IO
 open System.Xml
 open Argentum.Model
@@ -53,63 +55,100 @@ let buildXml xml =
     let xmlReader = XmlReader.Create(textReader, settings)
     xmlReader.Read() |> ignore
     xmlReader.Read() |> ignore
-    xmlReader.Read() |> ignore
     xmlReader
 
-let expectEndElement (value: 'T) (reader: XmlReader)
+let expectNode
+    (expectedType: XmlNodeType)
+    (nodeResultFunc: XmlReader -> Result<'T, string>)
+    (reader: XmlReader)
     : Result<'T, string> =
     if reader.Read() then
         match reader.NodeType with
-        | XmlNodeType.EndElement -> Ok value
+        | nodeType when nodeType = expectedType -> nodeResultFunc reader
         | nodeType ->
-            sprintf "Expected XML element end, got '%A'" nodeType
+            sprintf
+                "Expected XML node type '%A', got '%A'" expectedType nodeType
             |> Error    
     else
         Error "Unexpected end of XML"
 
+let expectElement
+    (nodeResultFunc: XmlReader -> Result<'T, string>)
+    (reader: XmlReader)
+    : Result<'T, string> = expectNode XmlNodeType.Element nodeResultFunc reader
+
+let expectEndElement (value: 'T) (reader: XmlReader)
+    : Result<'T, string> =
+    expectNode XmlNodeType.EndElement (fun _ -> Ok value) reader
+
 let readElementText (reader: XmlReader): Result<string, string> =
-    if reader.Read() then
-        match reader.NodeType with
-        | XmlNodeType.Text ->
-            expectEndElement (reader.Value) reader
-        | nodeType ->
-            sprintf "Expected XML element element, got '%A'" nodeType
-            |> Error
-    else
-        Error "Unexpected end of XML"
+    expectNode
+        XmlNodeType.Text
+        (fun reader -> expectEndElement (reader.Value) reader)
+        reader
+
+let readAttribute (attributeName: string) (reader: XmlReader)
+    : Result<string, string> =
+    match reader.GetAttribute(attributeName) with
+    | null ->
+        sprintf "Attribute '%s' is missing." attributeName |> Error
+    | value -> Ok value
+
+let parseSlotValue slotType reader =
+    match slotType with
+    | "string" ->
+        readElementText reader
+        |> Result.bind (fun value -> SlotString(value) |> Ok)
+    | "guid" ->
+        readElementText reader
+        |> Result.bind (fun value -> SlotGuid(Guid.Parse(value)) |> Ok)
+    | "gdate" ->
+        reader |> expectElement (fun reader ->
+            match reader.LocalName with
+            | "gdate" ->
+                reader |> readElementText
+                |> Result.bind (fun gdateStr -> 
+                    let (success, parsedDate) =
+                            DateTime.TryParse
+                                (gdateStr, CultureInfo.InvariantCulture,
+                                    DateTimeStyles.AssumeLocal)
+                    match success with
+                    | true -> SlotDate(parsedDate) |> Ok
+                    | false -> sprintf "Invalid date '%s'" gdateStr |> Error)
+            | elementName ->
+                sprintf "Expected 'gdate' element, got '%s'" elementName
+                |> Error)            
+    | unknown -> sprintf "Unsupported slot type '%s'." unknown |> Error
 
 let parseSlot (reader: XmlReader): Result<Slot, string> =
     let slotKey =
-        match reader.NodeType with
-        | XmlNodeType.Element ->
-            match reader.LocalName with
-            | "key" -> readElementText reader
-            | elementName ->
-                sprintf "Expected 'key' element, got '%s'" elementName
-                |> Error
-        | nodeType ->
-            sprintf "Expected XML element, got '%A'" nodeType
-            |> Error
+        expectElement
+            (fun reader ->
+                match reader.LocalName with
+                | "key" -> readElementText reader
+                | elementName ->
+                    sprintf "Expected 'key' element, got '%s'" elementName
+                    |> Error)
+            reader
 
     slotKey
     |> Result.bind (fun slotKey ->
-        if reader.Read() then
-            match reader.NodeType with
-            | XmlNodeType.Element ->
+        expectElement
+            (fun reader -> 
                 match reader.LocalName with
                 | "value" ->
-                    let valueResult = readElementText reader
-                    valueResult
-                    |> Result.bind (fun value -> 
-                        Ok { Key = slotKey; Value = SlotString(value)})
+                    let slotTypeResult = readAttribute "type" reader
+                    match slotTypeResult with
+                    | Error err -> Error err
+                    | Ok slotType ->
+                        parseSlotValue slotType reader
+                        |> Result.bind (fun value -> 
+                            Ok { Key = slotKey; Value = value})
                 | elementName ->
-                    sprintf "Expected 'key' element, got '%s'" elementName
-                    |> Error
-            | nodeType ->
-                sprintf "Expected XML element, got '%A'" nodeType
-                |> Error
-        else
-            Error "Unexpected end of XML")
+                    sprintf "Expected 'value' element, got '%s'" elementName
+                    |> Error)
+            reader
+        )
 
 [<Fact>]
 let ``Can parse string slot``() =
@@ -119,4 +158,40 @@ let ``Can parse string slot``() =
     let doc = buildXml xml
       
     test <@ parseSlot doc = Ok {Key = "color"; Value = SlotString("#1469EB")} @>
-   
+
+[<Fact>]
+let ``Can parse date slot``() =
+    let xml = @"
+        <slot:key>color</slot:key>
+        <slot:value type='gdate'>
+            <gdate>2019-04-30</gdate>
+        </slot:value>"
+    let doc = buildXml xml
+      
+    test <@ parseSlot doc = Ok {
+        Key = "color"
+        Value = SlotDate(DateTime(2019, 04, 30))
+    } @>
+
+[<Fact>]
+let ``Can parse GUID slot``() =
+    let xml = @"
+        <slot:key>color</slot:key>
+        <slot:value type='guid'>5dd0adfe20184e33aff8a52b011dc65b</slot:value>"
+    let doc = buildXml xml
+      
+    test <@ parseSlot doc = Ok {
+        Key = "color"
+        Value = SlotGuid(Guid("5dd0adfe20184e33aff8a52b011dc65b"))
+    } @>
+
+[<Fact>]
+let ``Identifies invalid date slot``() =
+    let xml = @"
+        <slot:key>color</slot:key>
+        <slot:value type='gdate'>
+            <something>2019-04-30</something>
+        </slot:value>"
+    let doc = buildXml xml
+      
+    test <@ parseSlot doc = Error "Expected 'gdate' element, got 'something'" @>

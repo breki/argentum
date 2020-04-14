@@ -1,5 +1,6 @@
 # Argentum to do
 
+- extract method for expecting certain tag name
 - design the model from the GnuCash XML file
     - implement property testing that (de)serializes data to XML
 - implement an XML reader for the model
