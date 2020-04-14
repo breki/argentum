@@ -1,11 +1,20 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Argentum", "Argentum.fsproj", "{2F8FEF64-B724-49BD-824D-875EC60B161F}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Argentum", "Argentum\Argentum.fsproj", "{2F8FEF64-B724-49BD-824D-875EC60B161F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{11FBFD9C-741D-4951-BD1D-0E2AE75914FA}"
 ProjectSection(SolutionItems) = preProject
 	TODO.md = TODO.md
 EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{81C99005-4046-40DD-80C7-1F232345603C}"
+ProjectSection(SolutionItems) = preProject
+	build.bat = build.bat
+	fsharplint.json = fsharplint.json
+	test-watch.bat = test-watch.bat
+EndProjectSection
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Argentum.Tests", "Argentum.Tests\Argentum.Tests.fsproj", "{C11AE24C-D766-4B80-91A2-05602EA36E2E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,5 +26,9 @@ Global
 		{2F8FEF64-B724-49BD-824D-875EC60B161F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2F8FEF64-B724-49BD-824D-875EC60B161F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2F8FEF64-B724-49BD-824D-875EC60B161F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C11AE24C-D766-4B80-91A2-05602EA36E2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C11AE24C-D766-4B80-91A2-05602EA36E2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C11AE24C-D766-4B80-91A2-05602EA36E2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C11AE24C-D766-4B80-91A2-05602EA36E2E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

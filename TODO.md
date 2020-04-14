@@ -1,10 +1,5 @@
 # Argentum to do
 
-- prepare the basic project structure
-    - .gitignore from demeton
-    - main project + main method
-    - test project
-    - build script
 - design the model from the GnuCash XML file
     - https://wiki.gnucash.org/wiki/GnuCash_XML_format
 - implement an XML reader for the model
