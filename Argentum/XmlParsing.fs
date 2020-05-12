@@ -2,7 +2,9 @@
 
 open System.Xml
 
-type ParsingContext<'T> = Result<(XmlReader * 'T), string>
+type ParsingXXX<'T> = XmlReader * 'T
+
+type ParsingContext<'T> = Result<(ParsingXXX<'T>), string>
 
 let readAttribute (attributeName: string) (context: ParsingContext<'T>)
     : ParsingContext<string> =
@@ -79,3 +81,9 @@ let map mapFunc (context: ParsingContext<'T>): ParsingContext<'U> =
         match mapFunc parseValue with
         | Ok newValue -> Ok (reader, newValue)
         | Error err -> Error err
+
+let (>>=)
+    (context: ParsingContext<'T>)
+    (parsingFunc: ParsingXXX<'T> -> ParsingContext<'U>)
+    : ParsingContext<'U> =
+    context |> Result.bind parsingFunc

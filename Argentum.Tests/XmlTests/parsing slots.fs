@@ -35,20 +35,17 @@ let parseSlotValue (context: ParsingContext<string>)
         sprintf "Unsupported slot type '%s'." unknown |> Error
 
 let parseSlot (context: ParsingContext<unit>): ParsingContext<Slot> =
-    let readSlotValue (context: ParsingContext<string>) =
-        match context with
-        | Error err -> Error err
-        | Ok (_, slotKey) ->
-            context
-            |> readAttribute "type"
-            |> parseSlotValue
-            |> map (fun value -> Ok { Key = slotKey; Value = value})
+    let readSlotValue ((_, slotKey): ParsingXXX<string>) =
+        context
+        |> readAttribute "type"
+        |> parseSlotValue
+        |> map (fun value -> Ok { Key = slotKey; Value = value})
     
     context 
     |> expectElement "key"
     |> readElementText
     |> expectElement "value"
-    |> readSlotValue
+    >>= readSlotValue
 
 [<Fact>]
 let ``Can parse string slot``() =
