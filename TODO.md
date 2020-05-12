@@ -1,5 +1,6 @@
 # Argentum to do
 
+- move the common XML parsing code to a production module
 - can we simplify the slot parsing code? 
 - design the model from the GnuCash XML file
     - implement property testing that (de)serializes data to XML
