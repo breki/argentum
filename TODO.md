@@ -1,8 +1,7 @@
 # Argentum to do
 
-- can we simplify the slot parsing code? 
-    - a special operator for Result.bind
-        - introduce it into the existing code
+- can we simplify the slot parsing code?
+    - what to do with map function? 
 - design the model from the GnuCash XML file
     - implement property testing that (de)serializes data to XML
 - implement an XML reader for the model

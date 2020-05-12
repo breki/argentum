@@ -9,20 +9,21 @@ open FsUnit
 open Xunit
 open Swensen.Unquote
 
-let parseSlotValue (result: ParseResult<string>)
+let parseSlotValue (context: ParseContext<string>)
     : (ParseResult<SlotValue>) =
-    match result with
-    | Error err -> Error err
-    | Ok (_, "string") ->
-        result |> readElementText
+        
+    let (_, valueType) = context
+    match valueType with
+    | "string" ->
+        context |> readElementText
         |> map (fun value -> SlotString(value) |> Ok)
-    | Ok (_, "guid") ->
-        result |> readElementText
+    | "guid" ->
+        context |> readElementText
         |> map (fun value -> SlotGuid(Guid.Parse(value)) |> Ok)
-    | Ok (_, "gdate") ->
-        result
+    | "gdate" ->
+        context
         |> expectElement "gdate"
-        |> readElementText
+        >>= readElementText
         |> map (fun gdateStr -> 
             let (success, parsedDate) =
                     DateTime.TryParse
@@ -31,20 +32,20 @@ let parseSlotValue (result: ParseResult<string>)
             match success with
             | true -> SlotDate(parsedDate) |> Ok
             | false -> sprintf "Invalid date '%s'" gdateStr |> Error)
-    | Ok (_, unknown) ->
+    | unknown ->
         sprintf "Unsupported slot type '%s'." unknown |> Error
 
-let parseSlot (result: ParseResult<unit>): ParseResult<Slot> =
+let parseSlot (context: ParseContext<unit>): ParseResult<Slot> =
     let readSlotValue ((_, slotKey): ParseContext<string>) =
-        result
+        context
         |> readAttribute "type"
-        |> parseSlotValue
+        >>= parseSlotValue
         |> map (fun value -> Ok { Key = slotKey; Value = value})
     
-    result 
+    context 
     |> expectElement "key"
-    |> readElementText
-    |> expectElement "value"
+    >>= readElementText
+    >>= expectElement "value"
     >>= readSlotValue
 
 [<Fact>]
