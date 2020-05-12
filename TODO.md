@@ -1,7 +1,9 @@
 # Argentum to do
 
+- rename ParsingXXX into ParsingContext
 - can we simplify the slot parsing code? 
-    - a special operator for Result.bind?
+    - a special operator for Result.bind
+        - introduce it into the existing code
 - design the model from the GnuCash XML file
     - implement property testing that (de)serializes data to XML
 - implement an XML reader for the model

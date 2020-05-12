@@ -9,18 +9,18 @@ open FsUnit
 open Xunit
 open Swensen.Unquote
 
-let parseSlotValue (context: ParsingContext<string>)
-    : (ParsingContext<SlotValue>) =
-    match context with
+let parseSlotValue (result: ParseResult<string>)
+    : (ParseResult<SlotValue>) =
+    match result with
     | Error err -> Error err
     | Ok (_, "string") ->
-        context |> readElementText
+        result |> readElementText
         |> map (fun value -> SlotString(value) |> Ok)
     | Ok (_, "guid") ->
-        context |> readElementText
+        result |> readElementText
         |> map (fun value -> SlotGuid(Guid.Parse(value)) |> Ok)
     | Ok (_, "gdate") ->
-        context
+        result
         |> expectElement "gdate"
         |> readElementText
         |> map (fun gdateStr -> 
@@ -34,14 +34,14 @@ let parseSlotValue (context: ParsingContext<string>)
     | Ok (_, unknown) ->
         sprintf "Unsupported slot type '%s'." unknown |> Error
 
-let parseSlot (context: ParsingContext<unit>): ParsingContext<Slot> =
+let parseSlot (result: ParseResult<unit>): ParseResult<Slot> =
     let readSlotValue ((_, slotKey): ParsingXXX<string>) =
-        context
+        result
         |> readAttribute "type"
         |> parseSlotValue
         |> map (fun value -> Ok { Key = slotKey; Value = value})
     
-    context 
+    result 
     |> expectElement "key"
     |> readElementText
     |> expectElement "value"

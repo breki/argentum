@@ -4,11 +4,11 @@ open System.Xml
 
 type ParsingXXX<'T> = XmlReader * 'T
 
-type ParsingContext<'T> = Result<(ParsingXXX<'T>), string>
+type ParseResult<'T> = Result<(ParsingXXX<'T>), string>
 
-let readAttribute (attributeName: string) (context: ParsingContext<'T>)
-    : ParsingContext<string> =
-    match context with
+let readAttribute (attributeName: string) (result: ParseResult<'T>)
+    : ParseResult<string> =
+    match result with
     | Error err -> Error err
     | Ok (reader, _) ->
         match reader.GetAttribute(attributeName) with
@@ -18,10 +18,10 @@ let readAttribute (attributeName: string) (context: ParsingContext<'T>)
 
 let expectNode
     (expectedType: XmlNodeType)
-    (context: ParsingContext<'T>)
-    : ParsingContext<'T> =
+    (result: ParseResult<'T>)
+    : ParseResult<'T> =
 
-    match context with
+    match result with
     | Error err -> Error err
     | Ok (reader, parseValue) ->
         if reader.Read() then
@@ -35,10 +35,10 @@ let expectNode
         else
             Error "Unexpected end of XML"
 
-let expectElement expectedElementName (context: ParsingContext<'T>)
-     : ParsingContext<'T> =
+let expectElement expectedElementName (result: ParseResult<'T>)
+     : ParseResult<'T> =
 
-    match context with
+    match result with
     | Error err -> Error err
     | Ok (reader, parseValue) ->
         if reader.Read() then
@@ -61,21 +61,21 @@ let expectElement expectedElementName (context: ParsingContext<'T>)
                     expectedElementName elementName
                 |> Error)
     
-let expectEndElement (context: ParsingContext<'T>): ParsingContext<'T> =
-    expectNode XmlNodeType.EndElement context
+let expectEndElement (result: ParseResult<'T>): ParseResult<'T> =
+    expectNode XmlNodeType.EndElement result
 
-let readElementText (context: ParsingContext<'T>): ParsingContext<string> =
-    let readNodeValue (context: ParsingContext<'T>): ParsingContext<string> =
-        match context with
+let readElementText (result: ParseResult<'T>): ParseResult<string> =
+    let readNodeValue (result: ParseResult<'T>): ParseResult<string> =
+        match result with
         | Error err -> Error err
         | Ok (reader, _) -> Ok (reader, reader.Value)
     
-    expectNode XmlNodeType.Text context
+    expectNode XmlNodeType.Text result
     |> readNodeValue
     |> expectEndElement
 
-let map mapFunc (context: ParsingContext<'T>): ParsingContext<'U> =
-    match context with
+let map mapFunc (result: ParseResult<'T>): ParseResult<'U> =
+    match result with
     | Error err -> Error err
     | Ok (reader, parseValue) ->
         match mapFunc parseValue with
@@ -83,7 +83,7 @@ let map mapFunc (context: ParsingContext<'T>): ParsingContext<'U> =
         | Error err -> Error err
 
 let (>>=)
-    (context: ParsingContext<'T>)
-    (parsingFunc: ParsingXXX<'T> -> ParsingContext<'U>)
-    : ParsingContext<'U> =
-    context |> Result.bind parsingFunc
+    (result: ParseResult<'T>)
+    (parsingFunc: ParsingXXX<'T> -> ParseResult<'U>)
+    : ParseResult<'U> =
+    result |> Result.bind parsingFunc

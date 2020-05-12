@@ -52,7 +52,7 @@ let buildXml xml =
     xmlReader.Read() |> ignore
     xmlReader
 
-let withReader reader: ParsingContext<unit> = Ok (reader, ())
+let withReader reader: ParseResult<unit> = Ok (reader, ())
 
 let parsedValue context =
     match context with
