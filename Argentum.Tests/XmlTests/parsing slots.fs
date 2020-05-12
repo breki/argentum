@@ -9,6 +9,19 @@ open FsUnit
 open Xunit
 open Swensen.Unquote
 
+let parseAmount (strAmount: string): Result<Amount, string> =
+    match strAmount.IndexOf "/" with
+    | i when i >= 0 ->
+        let dividendStr = strAmount.Substring(0, i)
+        let divisorStr = strAmount.Substring(i + 1)
+        let (dividendOk, dividend) = Int32.TryParse dividendStr
+        let (divisorOk, divisor) = Int32.TryParse divisorStr
+        
+        match dividendOk, divisorOk with
+        | true, true -> { Dividend = dividend; Divisor = divisor } |> Ok
+        | _ -> sprintf "Invalid amount value '%s'." strAmount |> Error
+    | _ -> sprintf "Invalid amount value '%s'." strAmount |> Error
+
 let rec parseSlot<'T> (context: ParseContext<'T>): ParseResult<Slot> =
     let parseSlotValue (context: ParseContext<string>)
         : (ParseResult<SlotValue>) =
@@ -18,6 +31,13 @@ let rec parseSlot<'T> (context: ParseContext<'T>): ParseResult<Slot> =
         | "string" ->
             context |> readElementText
             |> mapValue (fun value -> SlotString(value) |> Ok)
+        | "numeric" ->
+            context |> readElementText
+            |> mapValue (fun strNumeric ->
+                strNumeric
+                |> parseAmount
+                |> Result.bind (fun amount -> amount |> SlotNumeric |> Ok)
+                )
         | "guid" ->
             context |> readElementText
             |> mapValue (fun value -> SlotGuid(Guid.Parse(value)) |> Ok)
@@ -65,6 +85,19 @@ let ``Can parse string slot``() =
       
     test <@ parseSlot doc |> parsedValue = Ok {
         Key = "color"; Value = SlotString("#1469EB")
+    } @>
+
+[<Fact>]
+let ``Can parse numeric slot``() =
+    let xml = @"
+    <slot>
+      <slot:key>0</slot:key>
+      <slot:value type='numeric'>15/1</slot:value>
+    </slot>"
+    let doc = buildXml xml |> withReader
+      
+    test <@ parseSlot doc |> parsedValue = Ok {
+        Key = "0"; Value = SlotNumeric( { Dividend = 15; Divisor = 1 })
     } @>
 
 [<Fact>]

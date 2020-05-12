@@ -9,6 +9,7 @@ type Amount = {
 
 type SlotValue =
     | SlotString of string
+    | SlotNumeric of Amount
     | SlotDate of DateTime
     | SlotGuid of Guid
     | SlotOfSlots of Slot[]
