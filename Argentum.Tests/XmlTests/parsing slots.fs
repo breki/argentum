@@ -35,7 +35,7 @@ let parseSlotValue (result: ParseResult<string>)
         sprintf "Unsupported slot type '%s'." unknown |> Error
 
 let parseSlot (result: ParseResult<unit>): ParseResult<Slot> =
-    let readSlotValue ((_, slotKey): ParsingXXX<string>) =
+    let readSlotValue ((_, slotKey): ParseContext<string>) =
         result
         |> readAttribute "type"
         |> parseSlotValue
