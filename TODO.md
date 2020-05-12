@@ -1,7 +1,8 @@
 # Argentum to do
 
-- can we simplify the slot parsing code?
-    - what to do with map function? 
+- support numeric slot type
+    - check other possible types
+- parse a collection of slots
 - design the model from the GnuCash XML file
     - implement property testing that (de)serializes data to XML
 - implement an XML reader for the model

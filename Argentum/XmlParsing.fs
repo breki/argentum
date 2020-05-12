@@ -19,6 +19,10 @@ let readAttribute (attributeName: string) ((reader, _): ParseContext<'T>)
         sprintf "Attribute '%s' is missing." attributeName |> Error
     | value -> Ok (reader, value)
 
+let moveNext ((reader: XmlReader), _): ParseResult<unit> =
+    if reader.Read() then Ok (reader, ())
+    else Result.Error "Unexpected end of XML"
+
 let expectNode
     (expectedType: XmlNodeType)
     ((reader, parseValue): ParseContext<'T>)
@@ -71,7 +75,7 @@ let readElementText (context: ParseContext<'T>): ParseResult<string> =
     >>= readNodeValue
     >>= expectEndElement
 
-let map mapFunc (result: ParseResult<'T>): ParseResult<'U> =
+let mapValue mapFunc (result: ParseResult<'T>): ParseResult<'U> =
     match result with
     | Error err -> Error err
     | Ok (reader, parseValue) ->

@@ -11,8 +11,8 @@ type SlotValue =
     | SlotString of string
     | SlotDate of DateTime
     | SlotGuid of Guid
-
-type Slot = {
+    | SlotOfSlots of Slot[]
+and Slot = {
     Key: string
     Value: SlotValue
 }
