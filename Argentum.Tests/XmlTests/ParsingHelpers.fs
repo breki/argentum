@@ -2,7 +2,7 @@
 
 open System.IO
 open System.Xml
-open Argentum.XmlParsing
+open Argentum.Parsing.XmlParsing
 
 let buildXml xml =
     let prefix = @"<?xml version='1.0' encoding='utf-8' ?>

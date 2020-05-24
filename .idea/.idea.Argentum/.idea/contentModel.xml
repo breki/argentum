@@ -29,6 +29,7 @@
         <e p="Program.fs" t="Include" />
         <e p="Tests.fs" t="Include" />
         <e p="XmlTests" t="Include">
+          <e p="parsing commodities.fs" t="Include" />
           <e p="parsing slots.fs" t="Include" />
           <e p="ParsingHelpers.fs" t="Include" />
         </e>

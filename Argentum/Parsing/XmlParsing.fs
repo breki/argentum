@@ -12,12 +12,15 @@ let (>>=)
     : ParseResult<'U> =
     result |> Result.bind parsingFunc
 
-let readAttribute (attributeName: string) ((reader, _): ParseContext<'T>)
-    : ParseResult<string> =
+let readAttribute
+    (attributeName: string)
+    (stateUpdate: string -> 'T -> 'U)
+    ((reader, state): ParseContext<'T>)
+    : ParseResult<'U> =
     match reader.GetAttribute(attributeName) with
     | null ->
         sprintf "Attribute '%s' is missing." attributeName |> Error
-    | value -> Ok (reader, value)
+    | value -> Ok (reader, stateUpdate value state)
 
 let moveNext ((reader: XmlReader), _): ParseResult<unit> =
     if reader.Read() then Ok (reader, ())
@@ -87,6 +90,11 @@ let parseIfElement
     
 let expectEndElement (context: ParseContext<'T>): ParseResult<'T> =
     expectNode XmlNodeType.EndElement context
+
+let skipToElementEnd (context: ParseContext<'T>): ParseResult<'T> =
+    let (reader, value) = context
+    reader.Skip() |> ignore
+    Ok (reader, value)
 
 let readElementText (context: ParseContext<'T>): ParseResult<string> =
     let readNodeValue ((reader, _): ParseContext<'T>): ParseResult<string> =

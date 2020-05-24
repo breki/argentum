@@ -1,8 +1,15 @@
 # Argentum to do
 
+- implement an XML reader for the model
+    - commodity
+    - pricedb
+    - account
+    - transaction
+    - template-transactions
+    - schedxaction
+    - budget
 - design the model from the GnuCash XML file
     - implement property testing that (de)serializes data to XML
-- implement an XML reader for the model
 - import command line parsing code from Demetron
 - prepare a command to anonymize a GnuCash XML file
     - create an anonymized sample XML file and add it to the source control

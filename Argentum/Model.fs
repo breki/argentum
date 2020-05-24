@@ -24,12 +24,12 @@ and Slot = {
 type CurrencyId = string
 
 type CurrencyDef = {
+    Version: Version
     Id: CurrencyId
-    QuoteSource: string
 }
 
 type TemplateDef = {
-    Id: string
+    Version: Version
     Name: string
     XCode: string
     Fraction: int
@@ -37,7 +37,7 @@ type TemplateDef = {
 
 type Commodity =
     | Currency of CurrencyDef
-    | Template
+    | CommodityTemplate of TemplateDef
 
 type AccountId = Guid
 
