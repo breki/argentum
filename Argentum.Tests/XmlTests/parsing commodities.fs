@@ -20,13 +20,11 @@ let parseCommodity context: ParseResult<Commodity> =
     // expect end of tag
     context
     |> expectElement "commodity"
-    >>= readAttribute "version" (fun version _ -> version)
+    >>= readAttribute "version" (fun version _ -> Version(version))
     >>= skipToElementEnd
-    |> ignore
-
-    let (reader, _) = context
-    let commodity = Currency { Version = Version(2, 0, 0); Id = "CAD" }
-    Ok (reader, commodity)
+    >>= (fun (reader, version) ->
+            let commodity = Currency { Version = version; Id = "CAD" }
+            Ok (reader, commodity))
 
 [<Fact>]
 let ``Can parse currency``() =

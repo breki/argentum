@@ -12,6 +12,10 @@ let (>>=)
     : ParseResult<'U> =
     result |> Result.bind parsingFunc
 
+/// <summary>
+/// Reads the value of the specified attribute and then with it updates the
+/// parsing context state using the provided function.
+/// </summary>
 let readAttribute
     (attributeName: string)
     (stateUpdate: string -> 'T -> 'U)
