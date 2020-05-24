@@ -1,6 +1,5 @@
 # Argentum to do
 
-- parse a collection of slots
 - design the model from the GnuCash XML file
     - implement property testing that (de)serializes data to XML
 - implement an XML reader for the model

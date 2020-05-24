@@ -1,4 +1,4 @@
-﻿module Argentum.XmlParsing
+﻿module Argentum.Parsing.XmlParsing
 
 open System.Xml
 
@@ -63,6 +63,27 @@ let expectElement
             sprintf "Expected '%s' element, got '%s'"
                 expectedElementName elementName
             |> Error)
+
+let parseIfElement
+    expectedElementName
+    (parseFunc: ParseContext<'T> -> ParseResult<'U>) 
+    (context: ParseContext<'T>)
+     : ParseResult<'U option> =
+
+    let (reader, _) = context
+    
+    if reader.Read() then
+        match reader.NodeType with
+        | XmlNodeType.Element ->
+            match reader.LocalName with
+            | elementName when elementName = expectedElementName ->
+                match parseFunc context with
+                | Ok (reader, value) -> Ok (reader, Some value)
+                | Error error -> Error error
+            | _ -> Ok(reader, None)
+        | _ -> Ok(reader, None)
+    else
+        Ok(reader, None)
     
 let expectEndElement (context: ParseContext<'T>): ParseResult<'T> =
     expectNode XmlNodeType.EndElement context

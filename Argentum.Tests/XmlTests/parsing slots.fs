@@ -1,78 +1,12 @@
 ﻿module Argentum.Tests.XmlTests.``parsing slots``
 
 open System
-open System.Globalization
 open Argentum.Model
-open Argentum.XmlParsing
+open Argentum.Parsing.Slots
 open Argentum.Tests.XmlTests.ParsingHelpers
 open FsUnit
 open Xunit
 open Swensen.Unquote
-
-let parseAmount (strAmount: string): Result<Amount, string> =
-    match strAmount.IndexOf "/" with
-    | i when i >= 0 ->
-        let dividendStr = strAmount.Substring(0, i)
-        let divisorStr = strAmount.Substring(i + 1)
-        let (dividendOk, dividend) = Int32.TryParse dividendStr
-        let (divisorOk, divisor) = Int32.TryParse divisorStr
-        
-        match dividendOk, divisorOk with
-        | true, true -> { Dividend = dividend; Divisor = divisor } |> Ok
-        | _ -> sprintf "Invalid amount value '%s'." strAmount |> Error
-    | _ -> sprintf "Invalid amount value '%s'." strAmount |> Error
-
-let rec parseSlot<'T> (context: ParseContext<'T>): ParseResult<Slot> =
-    let parseSlotValue (context: ParseContext<string>)
-        : (ParseResult<SlotValue>) =
-            
-        let (_, valueType) = context
-        match valueType with
-        | "string" ->
-            context |> readElementText
-            |> mapValue (fun value -> SlotString(value) |> Ok)
-        | "numeric" ->
-            context |> readElementText
-            |> mapValue (fun strNumeric ->
-                strNumeric
-                |> parseAmount
-                |> Result.bind (fun amount -> amount |> SlotNumeric |> Ok)
-                )
-        | "guid" ->
-            context |> readElementText
-            |> mapValue (fun value -> SlotGuid(Guid.Parse(value)) |> Ok)
-        | "gdate" ->
-            context
-            |> expectElement "gdate"
-            >>= readElementText
-            |> mapValue (fun gdateStr -> 
-                let (success, parsedDate) =
-                        DateTime.TryParse
-                            (gdateStr, CultureInfo.InvariantCulture,
-                                DateTimeStyles.AssumeLocal)
-                match success with
-                | true -> SlotDate(parsedDate) |> Ok
-                | false -> sprintf "Invalid date '%s'" gdateStr |> Error)
-        | "frame" ->
-            context
-//            |> expectElement "slot"
-            |> parseSlot
-            |> mapValue (fun innerSlot -> SlotOfSlots [| innerSlot |] |> Ok)
-        | unknown ->
-            sprintf "Unsupported slot type '%s'." unknown |> Error
-
-    let readSlotValue ((_, slotKey): ParseContext<string>) =
-        context
-        |> readAttribute "type"
-        >>= parseSlotValue
-        |> mapValue (fun value -> Ok { Key = slotKey; Value = value})
-    
-    context
-    |> expectElement "slot"
-    >>= expectElement "key"
-    >>= readElementText
-    >>= expectElement "value"
-    >>= readSlotValue
 
 [<Fact>]
 let ``Can parse string slot``() =
@@ -83,9 +17,8 @@ let ``Can parse string slot``() =
     </slot>"
     let doc = buildXml xml |> withReader
       
-    test <@ parseSlot doc |> parsedValue = Ok {
-        Key = "color"; Value = SlotString("#1469EB")
-    } @>
+    let expectedSlot = Some { Key = "color"; Value = SlotString("#1469EB")}
+    test <@ parseSlot doc |> parsedOptionalValue = Ok expectedSlot @>
 
 [<Fact>]
 let ``Can parse numeric slot``() =
@@ -96,9 +29,10 @@ let ``Can parse numeric slot``() =
     </slot>"
     let doc = buildXml xml |> withReader
       
-    test <@ parseSlot doc |> parsedValue = Ok {
-        Key = "0"; Value = SlotNumeric( { Dividend = 15; Divisor = 1 })
-    } @>
+    let expectedSlot = Some {
+        Key = "0"; Value = SlotNumeric(amount1 15)
+    }
+    test <@ parseSlot doc |> parsedOptionalValue = Ok expectedSlot @>
 
 [<Fact>]
 let ``Can parse date slot``() =
@@ -110,11 +44,12 @@ let ``Can parse date slot``() =
         </slot:value>
     </slot>"
     let doc = buildXml xml |> withReader
-      
-    test <@ parseSlot doc |> parsedValue = Ok {
+
+    let expectedSlot = Some {
         Key = "color"
         Value = SlotDate(DateTime(2019, 04, 30))
-    } @>
+    }       
+    test <@ parseSlot doc |> parsedOptionalValue = Ok expectedSlot @>
 
 [<Fact>]
 let ``Can parse GUID slot``() =
@@ -124,11 +59,12 @@ let ``Can parse GUID slot``() =
         <slot:value type='guid'>5dd0adfe20184e33aff8a52b011dc65b</slot:value>
     </slot>"
     let doc = buildXml xml |> withReader
-      
-    test <@ parseSlot doc |> parsedValue = Ok {
+
+    let expectedSlot = Some {
         Key = "color"
         Value = SlotGuid(Guid("5dd0adfe20184e33aff8a52b011dc65b"))
-    } @>
+    }       
+    test <@ parseSlot doc |> parsedOptionalValue = Ok expectedSlot @>
 
 [<Fact>]
 let ``Identifies invalid date slot structure``() =
@@ -141,7 +77,7 @@ let ``Identifies invalid date slot structure``() =
     </slot>"
     let doc = buildXml xml |> withReader
       
-    test <@ parseSlot doc |> parsedValue
+    test <@ parseSlot doc |> parsedOptionalValue
                 = Error "Expected 'gdate' element, got 'something'" @>
 
 [<Fact>]
@@ -155,7 +91,8 @@ let ``Identifies invalid date slot date value``() =
     </slot>"
     let doc = buildXml xml |> withReader
       
-    test <@ parseSlot doc |> parsedValue = Error "Invalid date 'xxsds'" @>
+    test <@ parseSlot doc |> parsedOptionalValue
+                = Error "Invalid date 'xxsds'" @>
 
 [<Fact>]
 let ``Can parse a hierarchy of slots``() =
@@ -171,9 +108,37 @@ let ``Can parse a hierarchy of slots``() =
     </slot>"
     let doc = buildXml xml |> withReader
       
-    test <@ parseSlot doc |> parsedValue = Ok {
+    let expectedSlot = Some {
         Key = "e44783b10c214f3cba6de0d98bb6983f"
         Value = SlotOfSlots
                     ([| { Key = "color"
                           Value = SlotString("#1469EB") } |])
-    } @>
+    } 
+    test <@ parseSlot doc |> parsedOptionalValue = Ok expectedSlot @>
+
+[<Fact>]
+let ``Can parse a list of slots``() =
+    let xml = @"
+    <slot>
+      <slot:key>e44783b10c214f3cba6de0d98bb6983f</slot:key>
+      <slot:value type='frame'>
+        <slot>
+          <slot:key>0</slot:key>
+          <slot:value type='numeric'>15/1</slot:value>
+        </slot>
+        <slot>
+          <slot:key>1</slot:key>
+          <slot:value type='numeric'>15/1</slot:value>
+        </slot>
+      </slot:value>
+    </slot>"
+    let doc = buildXml xml |> withReader
+
+    let expectedSlot = Some {
+        Key = "e44783b10c214f3cba6de0d98bb6983f"
+        Value = SlotOfSlots
+                    ([| { Key = "0"; Value = SlotNumeric(amount1 15) };
+                        { Key = "1"; Value = SlotNumeric(amount1 15) }
+                    |])
+    }       
+    test <@ parseSlot doc |> parsedOptionalValue = Ok expectedSlot @>

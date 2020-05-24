@@ -7,6 +7,9 @@ type Amount = {
     Divisor: int
 }
 
+let amount2 dividend divisor = { Dividend = dividend; Divisor = divisor }
+let amount1 dividend = 1 |> amount2 dividend  
+
 type SlotValue =
     | SlotString of string
     | SlotNumeric of Amount

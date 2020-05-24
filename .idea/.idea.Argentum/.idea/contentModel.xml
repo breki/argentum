@@ -14,8 +14,12 @@
         <e p="bin" t="ExcludeRecursive" />
         <e p="Model.fs" t="Include" />
         <e p="obj" t="ExcludeRecursive" />
+        <e p="Parsing" t="Include">
+          <e p="Core.fs" t="Include" />
+          <e p="Slots.fs" t="Include" />
+          <e p="XmlParsing.fs" t="Include" />
+        </e>
         <e p="Program.fs" t="Include" />
-        <e p="XmlParsing.fs" t="Include" />
       </e>
       <e p="Argentum.sln" t="IncludeFlat" />
       <e p="Argentum.Tests" t="IncludeRecursive">

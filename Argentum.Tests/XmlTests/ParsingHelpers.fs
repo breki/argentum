@@ -54,8 +54,14 @@ let buildXml xml =
 
 let withReader reader: ParseContext<unit> = (reader, ())
 
-let parsedValue context =
-    match context with
+let parsedValue (result: ParseResult<'T>): Result<'T, string> =
+    match result with
+    | Ok (_, value) -> Ok value
+    | Error err -> Error err
+
+let parsedOptionalValue (result: ParseResult<'T option>)
+    : Result<'T option, string> =
+    match result with
     | Ok (_, value) -> Ok value
     | Error err -> Error err
 
