@@ -13,8 +13,8 @@ let (>>=)
     result |> Result.bind parsingFunc
 
 /// <summary>
-/// Reads the value of the specified attribute and then with it updates the
-/// parsing context state using the provided function.
+/// Reads the value of the specified attribute and then using this value it
+/// updates the parsing context state using the provided function.
 /// </summary>
 let readAttribute
     (attributeName: string)
@@ -100,9 +100,37 @@ let skipToElementEnd (context: ParseContext<'T>): ParseResult<'T> =
     reader.Skip() |> ignore
     Ok (reader, value)
 
-let readElementText (context: ParseContext<'T>): ParseResult<string> =
-    let readNodeValue ((reader, _): ParseContext<'T>): ParseResult<string> =
-        Ok (reader, reader.Value)
+/// <summary>
+/// Reads the current XML element's inner text and then using this value it
+/// updates the parsing context state using the provided function.
+/// </summary>
+let readElementText
+    (stateUpdate: string -> 'T -> 'U)
+    (context: ParseContext<'T>)
+    : ParseResult<'U> =
+    let readNodeValue ((reader, state): ParseContext<'T>): ParseResult<'U> =
+        let nodeValue = reader.Value
+        let newState = stateUpdate nodeValue state
+        Ok (reader, newState)
+    
+    expectNode XmlNodeType.Text context
+    >>= readNodeValue
+    >>= expectEndElement
+
+/// <summary>
+/// Reads the current XML element's inner text and then using this value it
+/// updates the parsing context state using the provided function. The
+/// function returns a Result.
+/// </summary>
+let readElementTextResult
+    (stateUpdate: string -> 'T -> Result<'U, string>)
+    (context: ParseContext<'T>)
+    : ParseResult<'U> =
+    let readNodeValue ((reader, state): ParseContext<'T>): ParseResult<'U> =
+        let nodeValue = reader.Value
+        match stateUpdate nodeValue state with
+        | Ok newState -> Ok (reader, newState)
+        | Error error -> Error error
     
     expectNode XmlNodeType.Text context
     >>= readNodeValue
