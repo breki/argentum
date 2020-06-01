@@ -85,3 +85,25 @@ type Transaction = {
     Slots: Slot[]
     Splits: Split[]
 }
+
+type CommodityRef =  
+    | CurrencyRef of CurrencyId
+
+type PriceSource =
+    | UserPrice
+    | UserPriceEditor
+    | UserTransferDialog
+
+type PriceType =
+    | Unknown
+    | Transaction
+
+type Price = {
+    Id: Guid
+    Commodity: CommodityRef
+    Currency: CommodityRef
+    Time: DateTime
+    Source: PriceSource
+    PriceType: PriceType option
+    Value: Amount
+}

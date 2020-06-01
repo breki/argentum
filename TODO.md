@@ -1,7 +1,7 @@
 # Argentum to do
 
+- move commodities parsing code to the production module
 - implement an XML reader for the model
-    - commodity
     - pricedb
     - account
     - transaction
