@@ -47,29 +47,6 @@ let parseCommodityRef
         Ok (reader, newState)
     | Error error -> Error error   
 
-let parseDate
-    expectedElementName
-    (stateUpdate: DateTime -> 'T -> 'U)
-    (context: ParseContext<'T>)
-    : ParseResult<'U> =
-                
-    let (reader, state) = context
-    
-    let dateTime =
-        context
-        |> expectElement expectedElementName
-        >>= expectElement "date"
-        >>= readElementText (fun dateTimeStr _ -> DateTime.Parse(dateTimeStr))
-        >>= expectEndElement
-        >>= expectEndElement
-        
-    match dateTime with
-    | Ok (_, commodityRef) ->
-        let newState = state |> stateUpdate commodityRef
-        Ok (reader, newState)
-    | Error error -> Error error
-    
-
 let parsePrice context: ParseResult<Price option> =
     context
     |> expectElement "price"
@@ -85,7 +62,7 @@ let parsePrice context: ParseResult<Price option> =
         (fun commodityRef state -> (commodityRef, state))
     >>= parseCommodityRef "currency"
         (fun commodityRef state -> (commodityRef, state))
-    >>= parseDate "time"
+    >>= parseTime "time"
         (fun dateTime state -> (dateTime, state))
     >>= expectElement "source"
     >>= readElementText
@@ -118,7 +95,7 @@ let parsePrice context: ParseResult<Price option> =
                      |> Some |> Ok
                     )
 
-[<Fact(Skip="todo igor: read time in the right timezone")>]
+[<Fact>]
 let ``Can parse price``() =
     let xml = @"
       <price>
@@ -132,7 +109,7 @@ let ``Can parse price``() =
           <cmdty:id>EUR</cmdty:id>
         </price:currency>
         <price:time>
-          <ts:date>2020-02-04 10:59:00 +0000</ts:date>
+          <ts:date>2020-06-03 06:28:00 +0000</ts:date>
         </price:time>
         <price:source>user:price</price:source>
         <price:value>6815/10000</price:value>
@@ -145,7 +122,7 @@ let ``Can parse price``() =
         Id = Guid.Parse("30a1f0bde0854b848231a86ec1e1a4a3")
         Commodity = CurrencyRef "CAD"
         Currency = CurrencyRef "EUR"
-        Time = DateTime(2020, 02, 04, 10, 59, 00)
+        Time = DateTime(2020, 06, 03, 08, 28, 00)
         Source = UserPrice
         PriceType = None
         Value = amount2 6815 10000
