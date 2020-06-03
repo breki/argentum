@@ -43,8 +43,10 @@ let readAttributeResult
         | Ok newState -> Ok (reader, newState)
         | Error error -> Error error
 
-let moveNext ((reader: XmlReader), _): ParseResult<unit> =
-    if reader.Read() then Ok (reader, ())
+let moveNext ((reader: XmlReader), state): ParseResult<'T> =
+    if not reader.EOF then
+        reader.Read() |> ignore
+        Ok (reader, state)
     else Result.Error "Unexpected end of XML"
 
 let expectNode
@@ -52,7 +54,7 @@ let expectNode
     ((reader, parseValue): ParseContext<'T>)
     : ParseResult<'T> =
 
-    if reader.Read() then
+    if not reader.EOF then
         match reader.NodeType with
         | nodeType when nodeType = expectedType -> Ok(reader, parseValue)
         | nodeType ->
@@ -68,7 +70,7 @@ let expectElement
     ((reader, parseValue): ParseContext<'T>)
      : ParseResult<'T> =
 
-    if reader.Read() then
+    if not reader.EOF then
         match reader.NodeType with
         | XmlNodeType.Element -> Ok()
         | nodeType ->
@@ -88,6 +90,32 @@ let expectElement
                 expectedElementName elementName
             |> Error)
 
+// todo igor: document
+let parseConditional
+    expectedElementName
+    (parseIfFoundFunc: ParseContext<'T> -> ParseResult<'U>) 
+    (stateUpdateIfNotFoundFunc: 'T -> 'U) 
+    (context: ParseContext<'T>)
+     : ParseResult<'U> =
+    let (reader, state) = context
+    
+    // todo igor: remove code duplication
+    if not reader.EOF then
+        match reader.NodeType with
+        | XmlNodeType.Element ->
+            match reader.LocalName with
+            | elementName when elementName = expectedElementName ->
+                parseIfFoundFunc context
+            | _ ->
+                let newState = state |> stateUpdateIfNotFoundFunc
+                Ok (reader, newState)
+        | _ ->
+            let newState = state |> stateUpdateIfNotFoundFunc
+            Ok (reader, newState)
+    else
+        let newState = state |> stateUpdateIfNotFoundFunc
+        Ok (reader, newState)
+
 let parseIfElement
     expectedElementName
     (parseFunc: ParseContext<'T> -> ParseResult<'U>) 
@@ -96,7 +124,7 @@ let parseIfElement
 
     let (reader, _) = context
     
-    if reader.Read() then
+    if not reader.EOF then
         match reader.NodeType with
         | XmlNodeType.Element ->
             match reader.LocalName with

@@ -50,6 +50,7 @@ let buildXml xml =
     let xmlReader = XmlReader.Create(textReader, settings)
     xmlReader.Read() |> ignore
     xmlReader.Read() |> ignore
+    xmlReader.Read() |> ignore
     xmlReader
 
 let withReader reader: ParseContext<unit> = (reader, ())

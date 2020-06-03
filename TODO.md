@@ -1,5 +1,7 @@
 # Argentum to do
 
+- parsing price type
+    - add construct for conditional parsing
 - after price parsing is done, clean up code a little
 - implement an XML reader for the model
     - pricedb

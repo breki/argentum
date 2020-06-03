@@ -46,11 +46,12 @@ let parseTime
     
     let dateTime =
         context
-        |> expectElement expectedElementName
-        >>= expectElement "date"
+        |> expectElement expectedElementName >>= moveNext
+        >>= expectElement "date" >>= moveNext
         >>= readElementText (fun dateTimeStr _ -> DateTime.Parse(dateTimeStr))
-        >>= expectEndElement
-        >>= expectEndElement
+        >>= moveNext
+        >>= expectEndElement >>= moveNext
+        >>= expectEndElement >>= moveNext
         
     match dateTime with
     | Ok (_, commodityRef) ->

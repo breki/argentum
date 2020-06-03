@@ -34,6 +34,7 @@ let rec parseSlot<'T> (context: ParseContext<'T>): ParseResult<Slot option> =
         | "string" ->
             context
             |> readElementText (fun value _ -> SlotString(value))
+            >>= moveNext
             >>= expectEndElement
         | "numeric" ->
             context
@@ -41,14 +42,17 @@ let rec parseSlot<'T> (context: ParseContext<'T>): ParseResult<Slot option> =
                 strNumeric
                 |> parseAmount
                 |> Result.bind (fun amount -> amount |> SlotNumeric |> Ok))
+            >>= moveNext
             >>= expectEndElement
         | "guid" ->
             context
             |> readElementText(fun value _ -> SlotGuid(Guid.Parse(value)))
+            >>= moveNext
             >>= expectEndElement            
         | "gdate" ->
             context
             |> expectElement "gdate"
+            >>= moveNext
             >>= readElementTextResult (fun gdateStr _ -> 
                 let (success, parsedDate) =
                         DateTime.TryParse
@@ -57,6 +61,7 @@ let rec parseSlot<'T> (context: ParseContext<'T>): ParseResult<Slot option> =
                 match success with
                 | true -> SlotDate(parsedDate) |> Ok
                 | false -> sprintf "Invalid date '%s'" gdateStr |> Error)
+            >>= moveNext
             >>= expectEndElement            
         | "frame" ->
             match parseSlotList [] parseSlot context with
@@ -73,18 +78,19 @@ let rec parseSlot<'T> (context: ParseContext<'T>): ParseResult<Slot option> =
 
     let readSlotValue ((_, slotKey): ParseContext<string>) =
         context
-        |> readAttribute "type" (fun typ _ -> typ)
+        |> readAttribute "type" (fun typ _ -> typ) >>= moveNext
         >>= parseSlotValue
         |> mapValue (fun value -> Ok { Key = slotKey; Value = value})
     
     let parseIfSlot context =
         context
-        |> expectElement "key"
-        >>= readElementText (fun value _ -> value)
-        >>= expectEndElement
+        |> moveNext
+        >>= expectElement "key" >>= moveNext
+        >>= readElementText (fun value _ -> value) >>= moveNext
+        >>= expectEndElement >>= moveNext
         >>= expectElement "value"
-        >>= readSlotValue
-        >>= expectEndElement
+        >>= readSlotValue >>= moveNext
+        >>= expectEndElement >>= moveNext
     
     context
     |> parseIfElement "slot" parseIfSlot
