@@ -90,31 +90,45 @@ let expectElement
                 expectedElementName elementName
             |> Error)
 
-// todo igor: document
+/// <summary>
+/// If the current element is of expected name, parse it using the
+/// provided function. Otherwise modify the state using the provided function. 
+/// </summary>
+/// <param name="expectedElementName">
+/// The name of the element which should be parsed.
+/// </param>
+/// <param name="parseElement">
+/// The parsing function which should be called if the element is there.
+/// </param>
+/// <param name="stateUpdateIfNoElement">
+/// The parsing state update function which should be called in the element
+/// is not there.
+/// </param>
+/// <param name="context">The parsing context.</param>
+/// <returns>
+/// The parsing result.
+/// </returns>
 let parseConditional
     expectedElementName
-    (parseIfFoundFunc: ParseContext<'T> -> ParseResult<'U>) 
-    (stateUpdateIfNotFoundFunc: 'T -> 'U) 
+    (parseElement: ParseContext<'T> -> ParseResult<'U>) 
+    (stateUpdateIfNoElement: 'T -> 'U) 
     (context: ParseContext<'T>)
      : ParseResult<'U> =
     let (reader, state) = context
     
-    // todo igor: remove code duplication
+    let whenNotFound() =
+        let newState = state |> stateUpdateIfNoElement
+        Ok (reader, newState)
+    
     if not reader.EOF then
         match reader.NodeType with
         | XmlNodeType.Element ->
             match reader.LocalName with
             | elementName when elementName = expectedElementName ->
-                parseIfFoundFunc context
-            | _ ->
-                let newState = state |> stateUpdateIfNotFoundFunc
-                Ok (reader, newState)
-        | _ ->
-            let newState = state |> stateUpdateIfNotFoundFunc
-            Ok (reader, newState)
-    else
-        let newState = state |> stateUpdateIfNotFoundFunc
-        Ok (reader, newState)
+                parseElement context
+            | _ -> whenNotFound()
+        | _ -> whenNotFound()
+    else whenNotFound()
 
 let parseIfElement
     expectedElementName
