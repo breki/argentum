@@ -59,7 +59,7 @@ let expectNode
         | nodeType when nodeType = expectedType -> Ok(reader, parseValue)
         | nodeType ->
             sprintf
-                "Expected XML node type '%A', got '%A' ('%A')"
+                "Expected XML node type '%A', got %A ('%A')"
                     expectedType nodeType reader.Name
             |> Error
     else
@@ -75,7 +75,7 @@ let expectElement
         | XmlNodeType.Element -> Ok()
         | nodeType ->
             sprintf
-                "Expected XML node type '%A', got '%A' ('%A')"
+                "Expected XML node type '%A', got %A ('%A')"
                     XmlNodeType.Element nodeType reader.Name
             |> Error    
     else
@@ -86,8 +86,8 @@ let expectElement
         | elementName when elementName = expectedElementName ->
             Ok(reader, parseValue)
         | elementName ->
-            sprintf "Expected '%s' element, got '%s'"
-                expectedElementName elementName
+            sprintf "Expected '%s' element, got %A '%s'"
+                expectedElementName reader.NodeType elementName
             |> Error)
 
 /// <summary>

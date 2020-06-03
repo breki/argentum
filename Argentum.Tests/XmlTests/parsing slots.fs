@@ -78,7 +78,7 @@ let ``Identifies invalid date slot structure``() =
     let doc = buildXml xml |> withReader
       
     test <@ parseSlot doc |> parsedOptionalValue
-                = Error "Expected 'gdate' element, got 'something'" @>
+                = Error "Expected 'gdate' element, got Element 'something'" @>
 
 [<Fact>]
 let ``Identifies invalid date slot date value``() =

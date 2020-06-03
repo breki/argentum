@@ -107,3 +107,5 @@ type Price = {
     PriceType: PriceType option
     Value: Amount
 }
+
+type PriceDb = Price seq

@@ -1,6 +1,8 @@
 ﻿module Argentum.Tests.XmlTests.``parsing price DB``
 
 open System
+open System.Collections.Generic
+open System.Xml
 open Argentum.Model
 open Argentum.Parsing.XmlParsing
 open Argentum.Parsing.Core
@@ -8,6 +10,43 @@ open FsUnit
 open Xunit
 open Swensen.Unquote
 open Argentum.Tests.XmlTests.ParsingHelpers
+
+
+let priceDbXml = @"
+<gnc:pricedb version='1'>
+  <price>
+    <price:id type='guid'>30a1f0bde0854b848231a86ec1e1a4a3</price:id>
+    <price:commodity>
+      <cmdty:space>CURRENCY</cmdty:space>
+      <cmdty:id>CAD</cmdty:id>
+    </price:commodity>
+    <price:currency>
+      <cmdty:space>CURRENCY</cmdty:space>
+      <cmdty:id>EUR</cmdty:id>
+    </price:currency>
+    <price:time>
+      <ts:date>2020-06-03 06:28:00 +0000</ts:date>
+    </price:time>
+    <price:source>user:price</price:source>
+    <price:value>6815/10000</price:value>
+  </price>
+  <price>
+    <price:id type='guid'>0721e697c7194f5582769d24164d3e70</price:id>
+    <price:commodity>
+      <cmdty:space>CURRENCY</cmdty:space>
+      <cmdty:id>CAD</cmdty:id>
+    </price:commodity>
+    <price:currency>
+      <cmdty:space>CURRENCY</cmdty:space>
+      <cmdty:id>EUR</cmdty:id>
+    </price:currency>
+    <price:time>
+      <ts:date>2019-12-08 10:59:00 +0000</ts:date>
+    </price:time>
+    <price:source>user:price</price:source>
+    <price:value>6558/10000</price:value>
+  </price>
+</gnc:pricedb>"
 
 let parseCommodityRef
     expectedElementName
@@ -104,6 +143,7 @@ let parsePrice context: ParseResult<Price option> =
                 | Ok amount -> Ok (amount, state)
                 | Error error -> Error error) >>= moveNext
     >>= expectEndElement >>= moveNext
+    >>= moveNext
     |> mapValue
            (fun (amount, (priceType, (source, (dateTime,
                                                (currency, (commodity, id))))))
@@ -113,6 +153,40 @@ let parsePrice context: ParseResult<Price option> =
                       Value = amount }
                      |> Some |> Ok
                     )
+
+let rec parseList
+    (itemElementName: string)
+    itemParser
+    (context: ParseContext<'T>)
+    : ParseResult<'U list> =
+        
+    let rec parseListInternal
+        (items: 'U list)
+        (itemElementName: string)
+        itemParser
+        (context: ParseContext<'T>)
+        : ParseResult<'U list> =
+            
+        let (reader, _) = context
+            
+        match reader.NodeType, reader.LocalName with
+        | XmlNodeType.Element, itemElementName ->       
+            match itemParser context with
+            | Ok (_, Some item) ->
+                parseListInternal (item :: items) itemElementName itemParser context
+            | Ok (_, None) -> Ok (reader, items)
+            | Error error -> Error error
+        | _ -> Ok (reader, items)
+
+    context
+    |> parseListInternal [] itemElementName itemParser
+    |> mapValue (fun reversedList -> reversedList |> List.rev |> Ok) 
+
+let parsePriceDb (context: ParseContext<'T>): ParseResult<Price list> =
+    context
+    |> expectElement "pricedb" >>= moveNext
+    >>= parseList "price" parsePrice
+    >>= expectEndElement
 
 [<Fact>]
 let ``Can parse price without type``() =
@@ -184,3 +258,31 @@ let ``Can parse price with type``() =
       } |> Some |> Ok
     
     test <@ parsePrice doc |> parsedValue = expectedPrice @>
+    
+[<Fact>]
+let ``Can parse whole price db``() =
+    let doc = buildXml priceDbXml |> withReader
+
+    let expectedPrices =
+        [
+          {
+            Id = Guid.Parse("30a1f0bde0854b848231a86ec1e1a4a3")
+            Commodity = CurrencyRef "CAD"
+            Currency = CurrencyRef "EUR"
+            Time = DateTime(2020, 06, 03, 08, 28, 00)
+            Source = UserPrice
+            PriceType = None
+            Value = amount2 6815 10000
+          };
+          {
+            Id = Guid.Parse("0721e697c7194f5582769d24164d3e70")
+            Commodity = CurrencyRef "CAD"
+            Currency = CurrencyRef "EUR"
+            Time = DateTime(2019, 12, 08, 11, 59, 00)
+            Source = UserPrice
+            PriceType = None
+            Value = amount2 6558 10000
+          }      
+        ] |> Ok
+    
+    test <@ parsePriceDb doc |> parsedValue = expectedPrices @>
