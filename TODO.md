@@ -5,7 +5,6 @@
         - document it and move to production module
         - use it to parse slots
 
-    - parse whole pricedb
     - after price parsing is done, clean up code a little
 - implement an XML reader for the model
     - account

@@ -154,34 +154,6 @@ let parsePrice context: ParseResult<Price option> =
                      |> Some |> Ok
                     )
 
-let rec parseList
-    (itemElementName: string)
-    itemParser
-    (context: ParseContext<'T>)
-    : ParseResult<'U list> =
-        
-    let rec parseListInternal
-        (items: 'U list)
-        (itemElementName: string)
-        itemParser
-        (context: ParseContext<'T>)
-        : ParseResult<'U list> =
-            
-        let (reader, _) = context
-            
-        match reader.NodeType, reader.LocalName with
-        | XmlNodeType.Element, itemElementName ->       
-            match itemParser context with
-            | Ok (_, Some item) ->
-                parseListInternal (item :: items) itemElementName itemParser context
-            | Ok (_, None) -> Ok (reader, items)
-            | Error error -> Error error
-        | _ -> Ok (reader, items)
-
-    context
-    |> parseListInternal [] itemElementName itemParser
-    |> mapValue (fun reversedList -> reversedList |> List.rev |> Ok) 
-
 let parsePriceDb (context: ParseContext<'T>): ParseResult<Price list> =
     context
     |> expectElement "pricedb" >>= moveNext

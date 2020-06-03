@@ -200,3 +200,45 @@ let mapValue mapFunc (result: ParseResult<'T>): ParseResult<'U> =
         match mapFunc parseValue with
         | Ok newValue -> Ok (reader, newValue)
         | Error err -> Error err
+
+
+/// <summary>
+/// Parses a list of items of the same type.
+/// </summary>
+/// <param name="itemElementName">
+/// The name of the XML element representing a single item.
+/// </param>
+/// <param name="itemParser">
+/// The function that parses the individual item.
+/// </param>
+/// <param name="context">The parsing context.</param>
+/// <returns>
+/// The parsing result with a list of 0 or more parsed items.
+/// </returns>
+let rec parseList
+    (itemElementName: string)
+    itemParser
+    (context: ParseContext<'T>)
+    : ParseResult<'U list> =
+        
+    let rec parseListInternal
+        (items: 'U list)
+        (itemElementName: string)
+        itemParser
+        (context: ParseContext<'T>)
+        : ParseResult<'U list> =
+            
+        let (reader, _) = context
+            
+        match reader.NodeType, reader.LocalName with
+        | XmlNodeType.Element, itemElementName ->       
+            match itemParser context with
+            | Ok (_, Some item) ->
+                parseListInternal (item :: items) itemElementName itemParser context
+            | Ok (_, None) -> Ok (reader, items)
+            | Error error -> Error error
+        | _ -> Ok (reader, items)
+
+    context
+    |> parseListInternal [] itemElementName itemParser
+    |> mapValue (fun reversedList -> reversedList |> List.rev |> Ok) 
