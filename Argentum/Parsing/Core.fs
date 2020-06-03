@@ -53,11 +53,11 @@ let parseTime
         >>= expectEndElementAndMove
         >>= expectEndElementAndMove
         
-    match dateTime with
-    | Ok (_, commodityRef) ->
+    dateTime
+    |> Result.map (fun (_, commodityRef) ->
         let newState = state |> stateUpdate commodityRef
-        Ok (reader, newState)
-    | Error error -> Error error
+        (reader, newState)
+    )
 
 let parseCommodityRef
     expectedElementName
@@ -87,12 +87,12 @@ let parseCommodityRef
         context
         |> expectElementAndMove expectedElementName
         >>= expectElementAndMove "space"
-        >>= readElementTextAndMove (fun space _ -> space )
+        >>= readElementTextAndMove (fun space _ -> space)
         >>= expectEndElementAndMove
         >>= parseCommodityRefBasedOnSpace
       
-    match commodityRef with
-    | Ok (_, commodityRef) ->
+    commodityRef
+    |> Result.map (fun (_, commodityRef) ->
         let newState = state |> stateUpdate commodityRef
-        Ok (reader, newState)
-    | Error error -> Error error   
+        (reader, newState)
+    )
