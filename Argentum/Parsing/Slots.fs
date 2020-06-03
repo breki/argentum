@@ -20,8 +20,7 @@ let rec parseSlot<'T> (context: ParseContext<'T>): ParseResult<Slot option> =
         match valueType with
         | "string" ->
             context
-            |> readElementText (fun value _ -> SlotString(value))
-            >>= moveNext
+            |> readElementTextAndMove (fun value _ -> SlotString(value))
             >>= expectEndElementAndMove
         | "numeric" ->
             context
@@ -33,13 +32,11 @@ let rec parseSlot<'T> (context: ParseContext<'T>): ParseResult<Slot option> =
             >>= expectEndElementAndMove
         | "guid" ->
             context
-            |> readElementText(fun value _ -> SlotGuid(Guid.Parse(value)))
-            >>= moveNext
+            |> readElementTextAndMove(fun value _ -> SlotGuid(Guid.Parse(value)))
             >>= expectEndElementAndMove     
         | "gdate" ->
             context
-            |> expectElement "gdate"
-            >>= moveNext
+            |> expectElementAndMove "gdate"
             >>= readElementTextResult (fun gdateStr _ -> 
                 let (success, parsedDate) =
                         DateTime.TryParse
@@ -67,8 +64,8 @@ let rec parseSlot<'T> (context: ParseContext<'T>): ParseResult<Slot option> =
     let parseIfSlot context =
         context
         |> moveNext
-        >>= expectElement "key" >>= moveNext
-        >>= readElementText (fun value _ -> value) >>= moveNext
+        >>= expectElementAndMove "key"
+        >>= readElementTextAndMove (fun value _ -> value)
         >>= expectEndElementAndMove
         >>= expectElement "value"
         >>= readSlotValue

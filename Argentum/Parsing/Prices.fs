@@ -8,20 +8,20 @@ open Argentum.Parsing.Core
 
 let parsePrice context: ParseResult<Price option> =
     context
-    |> expectElement "price" >>= moveNext
+    |> expectElementAndMove "price"
     >>= expectElement "id"
     >>= readAttributeResult "type"
         (fun idType _ ->
           match idType with
           | "guid" -> Ok None
           | _ -> Error "Unsupported price ID type.") >>= moveNext
-    >>= readElementText (fun id _ -> Guid.Parse id) >>= moveNext
+    >>= readElementTextAndMove (fun id _ -> Guid.Parse id)
     >>= expectEndElementAndMove
     >>= parseCommodityRef "commodity" pushToState
     >>= parseCommodityRef "currency" pushToState
     >>= parseTime "time" pushToState
-    >>= expectElement "source" >>= moveNext
-    >>= readElementText
+    >>= expectElementAndMove "source"
+    >>= readElementTextAndMove
             (fun sourceText state ->
                 let source =
                     match sourceText with
@@ -33,13 +33,13 @@ let parsePrice context: ParseResult<Price option> =
                         |> invalidOp
                         
                 (source, state)
-            ) >>= moveNext
+            )
     >>= expectEndElementAndMove
     >>= parseConditional "type"
         (fun context ->
             context
             |> moveNext
-            >>= readElementText
+            >>= readElementTextAndMove
                     (fun typeText state ->
                         let priceType =
                             match typeText with
@@ -50,10 +50,10 @@ let parsePrice context: ParseResult<Price option> =
                                     "Price type '%s' is not supported." typeText
                                 |> invalidOp
                         (priceType, state)
-                    ) >>= moveNext
+                    )
             >>= expectEndElementAndMove)
         (fun state -> (None, state))
-    >>= expectElement "value" >>= moveNext
+    >>= expectElementAndMove "value"
     >>= readElementTextResult
             (fun text state ->
                 match parseAmount text with
@@ -73,6 +73,6 @@ let parsePrice context: ParseResult<Price option> =
 
 let parsePriceDb (context: ParseContext<'T>): ParseResult<Price list> =
     context
-    |> expectElement "pricedb" >>= moveNext
+    |> expectElementAndMove "pricedb"
     >>= parseList "price" parsePrice
     >>= expectEndElementAndMove

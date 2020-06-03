@@ -11,9 +11,8 @@ let parseCommodity context: ParseResult<Commodity option> =
         match space with
         | "CURRENCY" ->
             context
-            |> expectElement "id"
-            >>= moveNext
-            >>= readElementText (fun id state -> id :: state) >>= moveNext
+            |> expectElementAndMove "id"
+            >>= readElementTextAndMove (fun id state -> id :: state)
             >>= expectEndElementAndMove
             >>= skipToElementEnd
             >>= (fun (reader, state) ->
@@ -31,11 +30,9 @@ let parseCommodity context: ParseResult<Commodity option> =
     
     context
     |> expectElement "commodity"
-    >>= readAttribute "version" (fun version _ -> [ version ])
-    >>= moveNext
-    >>= expectElement "space"
-    >>= moveNext
-    >>= readElementText (fun space state -> space :: state) >>= moveNext
+    >>= readAttribute "version" (fun version _ -> [ version ]) >>= moveNext
+    >>= expectElementAndMove "space"
+    >>= readElementTextAndMove (fun space state -> space :: state)
     >>= expectEndElementAndMove
     >>= parseCommodityBasedOnSpace
 

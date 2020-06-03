@@ -252,8 +252,16 @@ let rec parseList
     |> parseListInternal [] itemElementName itemParser
     |> mapValue (fun reversedList -> reversedList |> List.rev |> Ok) 
 
+let expectElementAndMove expectedElementName context =
+    context |> expectElement expectedElementName >>= moveNext
+
 /// <summary>
 /// Expects the current node type to be an end element and moves forward.
 /// </summary>
 let expectEndElementAndMove context =
     context |> expectEndElement >>= moveNext
+
+let readElementTextAndMove
+    (stateUpdate: string -> 'T -> 'U)
+    context =
+    context |> readElementText stateUpdate >>= moveNext
