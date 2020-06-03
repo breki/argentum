@@ -34,15 +34,18 @@ let rec parseSlot<'T> (context: ParseContext<'T>): ParseResult<Slot option> =
         | "string" ->
             context
             |> readElementText (fun value _ -> SlotString(value))
+            >>= expectEndElement
         | "numeric" ->
             context
             |> readElementTextResult (fun strNumeric _ ->
                 strNumeric
                 |> parseAmount
                 |> Result.bind (fun amount -> amount |> SlotNumeric |> Ok))
+            >>= expectEndElement
         | "guid" ->
             context
             |> readElementText(fun value _ -> SlotGuid(Guid.Parse(value)))
+            >>= expectEndElement            
         | "gdate" ->
             context
             |> expectElement "gdate"
@@ -54,6 +57,7 @@ let rec parseSlot<'T> (context: ParseContext<'T>): ParseResult<Slot option> =
                 match success with
                 | true -> SlotDate(parsedDate) |> Ok
                 | false -> sprintf "Invalid date '%s'" gdateStr |> Error)
+            >>= expectEndElement            
         | "frame" ->
             match parseSlotList [] parseSlot context with
             | Ok (reader, childrenSlotsReversed) ->
@@ -77,6 +81,7 @@ let rec parseSlot<'T> (context: ParseContext<'T>): ParseResult<Slot option> =
         context
         |> expectElement "key"
         >>= readElementText (fun value _ -> value)
+        >>= expectEndElement
         >>= expectElement "value"
         >>= readSlotValue
         >>= expectEndElement

@@ -3,16 +3,122 @@
 open System
 open Argentum.Model
 open Argentum.Parsing.XmlParsing
+open Argentum.Parsing.Core
 open FsUnit
 open Xunit
 open Swensen.Unquote
 open Argentum.Tests.XmlTests.ParsingHelpers
 
-let parsePrice context: ParseResult<Price option> =
-  let (reader, _) = context
-  Ok (reader, None)
+let parseCommodityRef
+    expectedElementName
+    (stateUpdate: CommodityRef -> 'T -> 'U)
+    (context: ParseContext<'T>)
+    : ParseResult<'U> =
+    
+    let parseCommodityRefBasedOnSpace (context: ParseContext<string>) =
+        let (_, space) = context
+        match space with
+        | "CURRENCY" ->
+            context
+            |> expectElement "id"
+            >>= readElementText (fun id _ -> id)
+            >>= expectEndElement
+            >>= skipToElementEnd
+            >>= (fun (reader, id) ->
+                    let commodityRef = CurrencyRef id 
+                    Ok (reader, commodityRef))
+        | _ ->
+            sprintf "Commodity space '%s' is not supported." space
+            |> invalidOp
+            
+    let (reader, state) = context
+  
+    let commodityRef =
+        context
+        |> expectElement expectedElementName
+        >>= expectElement "space"
+        >>= readElementText (fun space _ -> space )
+        >>= expectEndElement
+        >>= parseCommodityRefBasedOnSpace
+      
+    match commodityRef with
+    | Ok (_, commodityRef) ->
+        let newState = state |> stateUpdate commodityRef
+        Ok (reader, newState)
+    | Error error -> Error error   
 
-[<Fact>]
+let parseDate
+    expectedElementName
+    (stateUpdate: DateTime -> 'T -> 'U)
+    (context: ParseContext<'T>)
+    : ParseResult<'U> =
+                
+    let (reader, state) = context
+    
+    let dateTime =
+        context
+        |> expectElement expectedElementName
+        >>= expectElement "date"
+        >>= readElementText (fun dateTimeStr _ -> DateTime.Parse(dateTimeStr))
+        >>= expectEndElement
+        >>= expectEndElement
+        
+    match dateTime with
+    | Ok (_, commodityRef) ->
+        let newState = state |> stateUpdate commodityRef
+        Ok (reader, newState)
+    | Error error -> Error error
+    
+
+let parsePrice context: ParseResult<Price option> =
+    context
+    |> expectElement "price"
+    >>= expectElement "id"
+    >>= readAttributeResult "type"
+        (fun idType _ ->
+          match idType with
+          | "guid" -> Ok None
+          | _ -> Error "Unsupported price ID type.")
+    >>= readElementText (fun id _ -> Guid.Parse id)
+    >>= expectEndElement
+    >>= parseCommodityRef "commodity"
+        (fun commodityRef state -> (commodityRef, state))
+    >>= parseCommodityRef "currency"
+        (fun commodityRef state -> (commodityRef, state))
+    >>= parseDate "time"
+        (fun dateTime state -> (dateTime, state))
+    >>= expectElement "source"
+    >>= readElementText
+            (fun sourceText state ->
+                let source =
+                    match sourceText with
+                    | "user:price" -> UserPrice
+                    | "user:xfer-dialog" -> UserTransferDialog
+                    | "user:price-editor" -> UserPriceEditor
+                    | _ ->
+                        sprintf "Price source '%s' is not supported." sourceText
+                        |> invalidOp
+                        
+                (source, state)
+            )
+    >>= expectEndElement
+    >>= expectElement "value"
+    >>= readElementTextResult
+            (fun text state ->
+                match parseAmount text with
+                | Ok amount -> Ok (amount, state)
+                | Error error -> Error error)
+    >>= expectEndElement
+    |> mapValue
+           (fun (amount, (source, (dateTime, (currency, (commodity, id)))))
+                ->
+                    { Id = id; Commodity = commodity; Currency = currency
+                      Time = dateTime; Source = source; PriceType = None
+                      Value = amount }
+                     |> Some |> Ok
+                    )
+
+[<Fact(Skip="todo igor: read time in the right timezone")>]
 let ``Can parse price``() =
     let xml = @"
       <price>

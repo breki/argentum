@@ -26,6 +26,23 @@ let readAttribute
         sprintf "Attribute '%s' is missing." attributeName |> Error
     | value -> Ok (reader, stateUpdate value state)
 
+/// <summary>
+/// Reads the value of the specified attribute and then using this value it
+/// updates the parsing context state using the provided function.
+/// </summary>
+let readAttributeResult
+    (attributeName: string)
+    (stateUpdate: string -> 'T -> Result<'U, string>)
+    ((reader, state): ParseContext<'T>)
+    : ParseResult<'U> =
+    match reader.GetAttribute(attributeName) with
+    | null ->
+        sprintf "Attribute '%s' is missing." attributeName |> Error
+    | value ->
+        match stateUpdate value state with
+        | Ok newState -> Ok (reader, newState)
+        | Error error -> Error error
+
 let moveNext ((reader: XmlReader), _): ParseResult<unit> =
     if reader.Read() then Ok (reader, ())
     else Result.Error "Unexpected end of XML"
@@ -40,8 +57,8 @@ let expectNode
         | nodeType when nodeType = expectedType -> Ok(reader, parseValue)
         | nodeType ->
             sprintf
-                "Expected XML node type '%A', got '%A'"
-                    expectedType nodeType
+                "Expected XML node type '%A', got '%A' ('%A')"
+                    expectedType nodeType reader.Name
             |> Error
     else
         Error "Unexpected end of XML"
@@ -56,8 +73,8 @@ let expectElement
         | XmlNodeType.Element -> Ok()
         | nodeType ->
             sprintf
-                "Expected XML node type '%A', got '%A'"
-                XmlNodeType.Element nodeType
+                "Expected XML node type '%A', got '%A' ('%A')"
+                    XmlNodeType.Element nodeType reader.Name
             |> Error    
     else
         Error "Unexpected end of XML"
@@ -115,7 +132,6 @@ let readElementText
     
     expectNode XmlNodeType.Text context
     >>= readNodeValue
-    >>= expectEndElement
 
 /// <summary>
 /// Reads the current XML element's inner text and then using this value it
@@ -134,7 +150,6 @@ let readElementTextResult
     
     expectNode XmlNodeType.Text context
     >>= readNodeValue
-    >>= expectEndElement
 
 let mapValue mapFunc (result: ParseResult<'T>): ParseResult<'U> =
     match result with
