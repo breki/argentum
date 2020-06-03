@@ -11,6 +11,7 @@
         <Compile Include="Parsing\Core.fs" />
         <Compile Include="Parsing\Slots.fs" />
         <Compile Include="Parsing\Commodities.fs" />
+        <Compile Include="Parsing\Prices.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
 

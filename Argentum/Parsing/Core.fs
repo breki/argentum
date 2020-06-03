@@ -58,3 +58,41 @@ let parseTime
         let newState = state |> stateUpdate commodityRef
         Ok (reader, newState)
     | Error error -> Error error
+
+let parseCommodityRef
+    expectedElementName
+    (stateUpdate: CommodityRef -> 'T -> 'U)
+    (context: ParseContext<'T>)
+    : ParseResult<'U> =
+    
+    let parseCommodityRefBasedOnSpace (context: ParseContext<string>) =
+        let (_, space) = context
+        match space with
+        | "CURRENCY" ->
+            context
+            |> expectElement "id" >>= moveNext
+            >>= readElementText (fun id _ -> id) >>= moveNext
+            >>= expectEndElement >>= moveNext
+            >>= skipToElementEnd
+            >>= (fun (reader, id) ->
+                    let commodityRef = CurrencyRef id 
+                    Ok (reader, commodityRef))
+        | _ ->
+            sprintf "Commodity space '%s' is not supported." space
+            |> invalidOp
+            
+    let (reader, state) = context
+  
+    let commodityRef =
+        context
+        |> expectElement expectedElementName >>= moveNext
+        >>= expectElement "space" >>= moveNext
+        >>= readElementText (fun space _ -> space ) >>= moveNext
+        >>= expectEndElement >>= moveNext
+        >>= parseCommodityRefBasedOnSpace
+      
+    match commodityRef with
+    | Ok (_, commodityRef) ->
+        let newState = state |> stateUpdate commodityRef
+        Ok (reader, newState)
+    | Error error -> Error error   

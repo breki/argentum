@@ -1,6 +1,7 @@
 # Argentum to do
 
 - parsing prices
+    - move to production module
     - after price parsing is done, clean up code a little
 - implement an XML reader for the model
     - account

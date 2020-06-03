@@ -17,6 +17,7 @@
         <e p="Parsing" t="Include">
           <e p="Commodities.fs" t="Include" />
           <e p="Core.fs" t="Include" />
+          <e p="Prices.fs" t="Include" />
           <e p="Slots.fs" t="Include" />
           <e p="XmlParsing.fs" t="Include" />
         </e>

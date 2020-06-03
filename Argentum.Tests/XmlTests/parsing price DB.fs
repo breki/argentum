@@ -1,11 +1,8 @@
 ﻿module Argentum.Tests.XmlTests.``parsing price DB``
 
 open System
-open System.Collections.Generic
-open System.Xml
 open Argentum.Model
-open Argentum.Parsing.XmlParsing
-open Argentum.Parsing.Core
+open Argentum.Parsing.Prices  
 open FsUnit
 open Xunit
 open Swensen.Unquote
@@ -47,118 +44,6 @@ let priceDbXml = @"
     <price:value>6558/10000</price:value>
   </price>
 </gnc:pricedb>"
-
-let parseCommodityRef
-    expectedElementName
-    (stateUpdate: CommodityRef -> 'T -> 'U)
-    (context: ParseContext<'T>)
-    : ParseResult<'U> =
-    
-    let parseCommodityRefBasedOnSpace (context: ParseContext<string>) =
-        let (_, space) = context
-        match space with
-        | "CURRENCY" ->
-            context
-            |> expectElement "id" >>= moveNext
-            >>= readElementText (fun id _ -> id) >>= moveNext
-            >>= expectEndElement >>= moveNext
-            >>= skipToElementEnd
-            >>= (fun (reader, id) ->
-                    let commodityRef = CurrencyRef id 
-                    Ok (reader, commodityRef))
-        | _ ->
-            sprintf "Commodity space '%s' is not supported." space
-            |> invalidOp
-            
-    let (reader, state) = context
-  
-    let commodityRef =
-        context
-        |> expectElement expectedElementName >>= moveNext
-        >>= expectElement "space" >>= moveNext
-        >>= readElementText (fun space _ -> space ) >>= moveNext
-        >>= expectEndElement >>= moveNext
-        >>= parseCommodityRefBasedOnSpace
-      
-    match commodityRef with
-    | Ok (_, commodityRef) ->
-        let newState = state |> stateUpdate commodityRef
-        Ok (reader, newState)
-    | Error error -> Error error   
-
-let parsePrice context: ParseResult<Price option> =
-    context
-    |> expectElement "price" >>= moveNext
-    >>= expectElement "id"
-    >>= readAttributeResult "type"
-        (fun idType _ ->
-          match idType with
-          | "guid" -> Ok None
-          | _ -> Error "Unsupported price ID type.") >>= moveNext
-    >>= readElementText (fun id _ -> Guid.Parse id) >>= moveNext
-    >>= expectEndElement >>= moveNext
-    >>= parseCommodityRef "commodity"
-        (fun commodityRef state -> (commodityRef, state))
-    >>= parseCommodityRef "currency"
-        (fun commodityRef state -> (commodityRef, state))
-    >>= parseTime "time"
-        (fun dateTime state -> (dateTime, state))
-    >>= expectElement "source" >>= moveNext
-    >>= readElementText
-            (fun sourceText state ->
-                let source =
-                    match sourceText with
-                    | "user:price" -> UserPrice
-                    | "user:xfer-dialog" -> UserTransferDialog
-                    | "user:price-editor" -> UserPriceEditor
-                    | _ ->
-                        sprintf "Price source '%s' is not supported." sourceText
-                        |> invalidOp
-                        
-                (source, state)
-            ) >>= moveNext
-    >>= expectEndElement >>= moveNext
-    >>= parseConditional "type"
-        (fun context ->
-            context
-            |> moveNext
-            >>= readElementText
-                    (fun typeText state ->
-                        let priceType =
-                            match typeText with
-                            | "transaction" -> Some Transaction
-                            | "unknown" -> Some Unknown
-                            | _ ->
-                                sprintf
-                                    "Price type '%s' is not supported." typeText
-                                |> invalidOp
-                        (priceType, state)
-                    ) >>= moveNext
-            >>= expectEndElement >>= moveNext)
-        (fun state -> (None, state))
-    >>= expectElement "value" >>= moveNext
-    >>= readElementTextResult
-            (fun text state ->
-                match parseAmount text with
-                | Ok amount -> Ok (amount, state)
-                | Error error -> Error error) >>= moveNext
-    >>= expectEndElement >>= moveNext
-    >>= moveNext
-    |> mapValue
-           (fun (amount, (priceType, (source, (dateTime,
-                                               (currency, (commodity, id))))))
-                ->
-                    { Id = id; Commodity = commodity; Currency = currency
-                      Time = dateTime; Source = source; PriceType = priceType
-                      Value = amount }
-                     |> Some |> Ok
-                    )
-
-let parsePriceDb (context: ParseContext<'T>): ParseResult<Price list> =
-    context
-    |> expectElement "pricedb" >>= moveNext
-    >>= parseList "price" parsePrice
-    >>= expectEndElement
 
 [<Fact>]
 let ``Can parse price without type``() =
