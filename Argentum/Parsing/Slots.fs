@@ -6,24 +6,11 @@ open Argentum.Model
 open Argentum.Parsing.XmlParsing
 open Argentum.Parsing.Core
 
-let rec parseSlotList
-    (slots: Slot list)
+let parseSlotList
     (parseSlot: ParseContext<'T> -> ParseResult<Slot option>)
     context
     : ParseResult<Slot list> =
-    let (reader, _) = context
-
-    // is there another slot to parse?
-    match parseSlot context with
-    // if we found another slot...
-    | Ok (_, Some slot) ->
-        // parse the rest of the list, with our slot put at the front
-        parseSlotList (slot :: slots) parseSlot context
-    // if there are no more slots to parse, 
-    | Ok (_, None) ->
-        // return what has been collected so far
-        Ok (reader, slots)
-    | Error error -> Error error
+    context |> parseList "slot" parseSlot
 
 let rec parseSlot<'T> (context: ParseContext<'T>): ParseResult<Slot option> =
     let parseSlotValue (context: ParseContext<string>)
@@ -64,14 +51,9 @@ let rec parseSlot<'T> (context: ParseContext<'T>): ParseResult<Slot option> =
             >>= moveNext
             >>= expectEndElement            
         | "frame" ->
-            match parseSlotList [] parseSlot context with
-            | Ok (reader, childrenSlotsReversed) ->
-                let childrenSlots =
-                    childrenSlotsReversed
-                    |> Array.ofList
-                    |> Array.rev
-                
-                Ok (reader, SlotOfSlots childrenSlots)
+            match parseSlotList parseSlot context with
+            | Ok (reader, childrenSlots) ->              
+                Ok (reader, SlotOfSlots (childrenSlots |> Array.ofList))
             | Error error -> Error error
         | unknown ->
             sprintf "Unsupported slot type '%s'." unknown |> Error

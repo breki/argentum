@@ -1,10 +1,6 @@
 # Argentum to do
 
 - parsing prices
-    - implement a generic parsing method that parses a sequence
-        - document it and move to production module
-        - use it to parse slots
-
     - after price parsing is done, clean up code a little
 - implement an XML reader for the model
     - account
