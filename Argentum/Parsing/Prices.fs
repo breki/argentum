@@ -56,9 +56,8 @@ let parsePrice context: ParseResult<Price option> =
     >>= expectElementAndMove "value"
     >>= readElementTextResult
             (fun text state ->
-                match parseAmount text with
-                | Ok amount -> Ok (amount, state)
-                | Error error -> Error error) >>= moveNext
+                parseAmount text |> Result.map (fun amount -> (amount, state))
+                ) >>= moveNext
     >>= expectEndElementAndMove
     >>= moveNext
     |> mapValue
