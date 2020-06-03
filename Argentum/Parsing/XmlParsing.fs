@@ -17,7 +17,6 @@ let (>>=)
 /// </summary>
 let pushToState value state = (value, state)
 
-
 /// <summary>
 /// Reads the value of the specified attribute and then using this value it
 /// updates the parsing context state using the provided function.
@@ -45,9 +44,8 @@ let readAttributeResult
     | null ->
         sprintf "Attribute '%s' is missing." attributeName |> Error
     | value ->
-        match stateUpdate value state with
-        | Ok newState -> Ok (reader, newState)
-        | Error error -> Error error
+        stateUpdate value state
+        |> Result.map (fun newState -> (reader, newState))
 
 let moveNext ((reader: XmlReader), state): ParseResult<'T> =
     if not reader.EOF then
@@ -149,9 +147,8 @@ let parseIfElement
         | XmlNodeType.Element ->
             match reader.LocalName with
             | elementName when elementName = expectedElementName ->
-                match parseFunc context with
-                | Ok (reader, value) -> Ok (reader, Some value)
-                | Error error -> Error error
+                parseFunc context
+                |> Result.map (fun (reader, value) -> (reader, Some value))
             | _ -> Ok(reader, None)
         | _ -> Ok(reader, None)
     else
@@ -195,9 +192,8 @@ let readElementTextResult
     : ParseResult<'U> =
     let readNodeValue ((reader, state): ParseContext<'T>): ParseResult<'U> =
         let nodeValue = reader.Value
-        match stateUpdate nodeValue state with
-        | Ok newState -> Ok (reader, newState)
-        | Error error -> Error error
+        stateUpdate nodeValue state
+        |> Result.map (fun newState -> (reader, newState))
     
     expectNode XmlNodeType.Text context
     >>= readNodeValue
@@ -206,9 +202,7 @@ let mapValue mapFunc (result: ParseResult<'T>): ParseResult<'U> =
     match result with
     | Error err -> Error err
     | Ok (reader, parseValue) ->
-        match mapFunc parseValue with
-        | Ok newValue -> Ok (reader, newValue)
-        | Error err -> Error err
+        mapFunc parseValue |> Result.map (fun newValue -> (reader, newValue))
 
 
 /// <summary>
@@ -240,7 +234,7 @@ let rec parseList
         let (reader, _) = context
             
         match reader.NodeType, reader.LocalName with
-        | XmlNodeType.Element, itemElementName ->       
+        | XmlNodeType.Element, x when x = itemElementName ->       
             match itemParser context with
             | Ok (_, Some item) ->
                 parseListInternal (item :: items) itemElementName itemParser context
