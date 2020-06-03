@@ -13,6 +13,12 @@ let (>>=)
     result |> Result.bind parsingFunc
 
 /// <summary>
+/// Returns a new state by creating a tuple of the value and the old state.
+/// </summary>
+let pushToState value state = (value, state)
+
+
+/// <summary>
 /// Reads the value of the specified attribute and then using this value it
 /// updates the parsing context state using the provided function.
 /// </summary>
@@ -151,6 +157,9 @@ let parseIfElement
     else
         Ok(reader, None)
     
+/// <summary>
+/// Expects the current node type to be an end element.
+/// </summary>
 let expectEndElement (context: ParseContext<'T>): ParseResult<'T> =
     expectNode XmlNodeType.EndElement context
 
@@ -242,3 +251,9 @@ let rec parseList
     context
     |> parseListInternal [] itemElementName itemParser
     |> mapValue (fun reversedList -> reversedList |> List.rev |> Ok) 
+
+/// <summary>
+/// Expects the current node type to be an end element and moves forward.
+/// </summary>
+let expectEndElementAndMove context =
+    context |> expectEndElement >>= moveNext

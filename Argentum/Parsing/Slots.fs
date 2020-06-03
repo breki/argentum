@@ -22,7 +22,7 @@ let rec parseSlot<'T> (context: ParseContext<'T>): ParseResult<Slot option> =
             context
             |> readElementText (fun value _ -> SlotString(value))
             >>= moveNext
-            >>= expectEndElement
+            >>= expectEndElementAndMove
         | "numeric" ->
             context
             |> readElementTextResult (fun strNumeric _ ->
@@ -30,12 +30,12 @@ let rec parseSlot<'T> (context: ParseContext<'T>): ParseResult<Slot option> =
                 |> parseAmount
                 |> Result.bind (fun amount -> amount |> SlotNumeric |> Ok))
             >>= moveNext
-            >>= expectEndElement
+            >>= expectEndElementAndMove
         | "guid" ->
             context
             |> readElementText(fun value _ -> SlotGuid(Guid.Parse(value)))
             >>= moveNext
-            >>= expectEndElement            
+            >>= expectEndElementAndMove     
         | "gdate" ->
             context
             |> expectElement "gdate"
@@ -49,7 +49,7 @@ let rec parseSlot<'T> (context: ParseContext<'T>): ParseResult<Slot option> =
                 | true -> SlotDate(parsedDate) |> Ok
                 | false -> sprintf "Invalid date '%s'" gdateStr |> Error)
             >>= moveNext
-            >>= expectEndElement            
+            >>= expectEndElementAndMove            
         | "frame" ->
             match parseSlotList parseSlot context with
             | Ok (reader, childrenSlots) ->              
@@ -69,10 +69,10 @@ let rec parseSlot<'T> (context: ParseContext<'T>): ParseResult<Slot option> =
         |> moveNext
         >>= expectElement "key" >>= moveNext
         >>= readElementText (fun value _ -> value) >>= moveNext
-        >>= expectEndElement >>= moveNext
+        >>= expectEndElementAndMove
         >>= expectElement "value"
-        >>= readSlotValue >>= moveNext
-        >>= expectEndElement >>= moveNext
+        >>= readSlotValue
+        >>= expectEndElementAndMove
     
     context
     |> parseIfElement "slot" parseIfSlot

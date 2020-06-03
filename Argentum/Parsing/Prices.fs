@@ -16,13 +16,10 @@ let parsePrice context: ParseResult<Price option> =
           | "guid" -> Ok None
           | _ -> Error "Unsupported price ID type.") >>= moveNext
     >>= readElementText (fun id _ -> Guid.Parse id) >>= moveNext
-    >>= expectEndElement >>= moveNext
-    >>= parseCommodityRef "commodity"
-        (fun commodityRef state -> (commodityRef, state))
-    >>= parseCommodityRef "currency"
-        (fun commodityRef state -> (commodityRef, state))
-    >>= parseTime "time"
-        (fun dateTime state -> (dateTime, state))
+    >>= expectEndElementAndMove
+    >>= parseCommodityRef "commodity" pushToState
+    >>= parseCommodityRef "currency" pushToState
+    >>= parseTime "time" pushToState
     >>= expectElement "source" >>= moveNext
     >>= readElementText
             (fun sourceText state ->
@@ -37,7 +34,7 @@ let parsePrice context: ParseResult<Price option> =
                         
                 (source, state)
             ) >>= moveNext
-    >>= expectEndElement >>= moveNext
+    >>= expectEndElementAndMove
     >>= parseConditional "type"
         (fun context ->
             context
@@ -54,7 +51,7 @@ let parsePrice context: ParseResult<Price option> =
                                 |> invalidOp
                         (priceType, state)
                     ) >>= moveNext
-            >>= expectEndElement >>= moveNext)
+            >>= expectEndElementAndMove)
         (fun state -> (None, state))
     >>= expectElement "value" >>= moveNext
     >>= readElementTextResult
@@ -62,7 +59,7 @@ let parsePrice context: ParseResult<Price option> =
                 match parseAmount text with
                 | Ok amount -> Ok (amount, state)
                 | Error error -> Error error) >>= moveNext
-    >>= expectEndElement >>= moveNext
+    >>= expectEndElementAndMove
     >>= moveNext
     |> mapValue
            (fun (amount, (priceType, (source, (dateTime,
@@ -78,4 +75,4 @@ let parsePriceDb (context: ParseContext<'T>): ParseResult<Price list> =
     context
     |> expectElement "pricedb" >>= moveNext
     >>= parseList "price" parsePrice
-    >>= expectEndElement
+    >>= expectEndElementAndMove

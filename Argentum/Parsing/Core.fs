@@ -50,8 +50,8 @@ let parseTime
         >>= expectElement "date" >>= moveNext
         >>= readElementText (fun dateTimeStr _ -> DateTime.Parse(dateTimeStr))
         >>= moveNext
-        >>= expectEndElement >>= moveNext
-        >>= expectEndElement >>= moveNext
+        >>= expectEndElementAndMove
+        >>= expectEndElementAndMove
         
     match dateTime with
     | Ok (_, commodityRef) ->
@@ -72,7 +72,7 @@ let parseCommodityRef
             context
             |> expectElement "id" >>= moveNext
             >>= readElementText (fun id _ -> id) >>= moveNext
-            >>= expectEndElement >>= moveNext
+            >>= expectEndElementAndMove
             >>= skipToElementEnd
             >>= (fun (reader, id) ->
                     let commodityRef = CurrencyRef id 
@@ -88,7 +88,7 @@ let parseCommodityRef
         |> expectElement expectedElementName >>= moveNext
         >>= expectElement "space" >>= moveNext
         >>= readElementText (fun space _ -> space ) >>= moveNext
-        >>= expectEndElement >>= moveNext
+        >>= expectEndElementAndMove
         >>= parseCommodityRefBasedOnSpace
       
     match commodityRef with
