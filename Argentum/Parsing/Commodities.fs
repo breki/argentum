@@ -5,19 +5,16 @@ open Argentum.Model
 open Argentum.Parsing.XmlParsing
 
 let parseCommodity context: ParseResult<Commodity option> =
-    let parseCommodityBasedOnSpace (context: ParseContext<string list>) =
-        let (_, state) = context
-        let space = state.[0]
+    let parseCommodityBasedOnSpace context =
+        let (_, (space, _)) = context
         match space with
         | "CURRENCY" ->
             context
             |> expectElementAndMove "id"
-            >>= readElementTextAndMove (fun id state -> id :: state)
+            >>= readElementTextAndMove pushToState
             >>= expectEndElementAndMove
             >>= skipToElementEnd
-            >>= (fun (reader, state) ->
-                    let version = state.[2]
-                    let id = state.[0]
+            >>= (fun (reader, (id, (_, (version)))) ->
                     let commodity
                         = Currency { Version = Version(version); Id = id }
                     Ok (reader, Some commodity))
@@ -30,9 +27,9 @@ let parseCommodity context: ParseResult<Commodity option> =
     
     context
     |> expectElement "commodity"
-    >>= readAttribute "version" (fun version _ -> [ version ]) >>= moveNext
+    >>= readAttribute "version" (fun version _ -> version) >>= moveNext
     >>= expectElementAndMove "space"
-    >>= readElementTextAndMove (fun space state -> space :: state)
+    >>= readElementTextAndMove pushToState
     >>= expectEndElementAndMove
     >>= parseCommodityBasedOnSpace
 

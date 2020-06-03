@@ -1,8 +1,5 @@
 # Argentum to do
 
-- parsing prices
-    - use the tuples approach when parsing slots and commodities, too
-    - after price parsing is done, clean up code a little
 - implement an XML reader for the model
     - account
     - transaction
