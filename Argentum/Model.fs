@@ -28,6 +28,9 @@ type CurrencyDef = {
     Id: CurrencyId
 }
 
+type CommodityRef =  
+    | CurrencyRef of CurrencyId
+
 type TemplateDef = {
     Version: Version
     Name: string
@@ -57,9 +60,9 @@ type Account = {
     Name: string
     Id: AccountId
     Type: AccountType
-    Commodity: Commodity
+    Commodity: CommodityRef
     CommodityScu: int
-    Description: string
+    Description: string option
     Slots: Slot[]
     ParentAccount: Account option
 }
@@ -85,9 +88,6 @@ type Transaction = {
     Slots: Slot[]
     Splits: Split[]
 }
-
-type CommodityRef =  
-    | CurrencyRef of CurrencyId
 
 type PriceSource =
     | UserPrice
