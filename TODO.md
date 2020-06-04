@@ -1,5 +1,7 @@
 # Argentum to do
 
+- type alias for state modifier func
+- parseSlotList should accept a state modifier function
 - implement an XML reader for the model
     - account
     - transaction

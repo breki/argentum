@@ -38,6 +38,10 @@ let parseAccount context =
                       |> invalidOp
                     
                 (accType, state))
+    >>= parseCommodityRef "commodity" pushToState
+    >>= expectElementAndMove "commodity-scu"
+    >>= readElementTextAndMove pushToState
+//    >>= parseSlots
    
     let (reader, _) = context
     
