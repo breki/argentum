@@ -1,59 +1,69 @@
 ﻿module Argentum.Tests.XmlTests.``parsing accounts``
 
 open System
+open System.Globalization
 open Argentum.Model
 open Argentum.Parsing.XmlParsing
 open Argentum.Parsing.Core
+open Argentum.Parsing.Slots
 open FsUnit
 open Xunit
 open Swensen.Unquote
 open Argentum.Tests.XmlTests.ParsingHelpers
 
 let parseAccount context =
-    let result = 
-      context
-      |> expectElementAndMove "account"
-      >>= expectElementAndMove "name"
-      >>= readElementTextAndMove (fun name _ -> name)
-      >>= expectEndElementAndMove
-      >>= expectElementAndMove "id"
-      >>= readElementTextAndMove (fun idStr state -> (Guid.Parse idStr, state))
-      >>= expectElementAndMove "type"
-      >>= readElementTextAndMove
-            (fun typeStr state ->
-                let accType =
-                    match typeStr with
-                    | "ASSET" -> AssetAccount
-                    | "BANK" -> BankAccount
-                    | "CASH" -> CashAccount
-                    | "CREDIT" -> CreditAccount
-                    | "EQUITY" -> EquityAccount
-                    | "EXPENSE" -> ExpenseAccount
-                    | "INCOME" -> IncomeAccount
-                    | "LIABILITY" -> LiabilityAccount
-                    | "RECEIVABLE" -> ReceivableAccount
-                    | "ROOT" -> RootAccount
-                    | _ ->
-                      sprintf "Unsupported account type '%s'." typeStr
-                      |> invalidOp
-                    
-                (accType, state))
-    >>= parseCommodityRef "commodity" pushToState
-    >>= expectElementAndMove "commodity-scu"
-    >>= readElementTextAndMove pushToState
-//    >>= parseSlots
-   
-    let (reader, _) = context
     
-    let account = 
-      { Name = "something"; Type = RootAccount
-        Id = Guid.NewGuid()
-        Commodity = CurrencyRef "EUR"; CommodityScu = 100;
-        Description = None
-        Slots = [||]; ParentAccount = None
-       } |> Some
-      
-    Ok (reader, account)
+    let x =
+        context
+        |> expectElementAndMove "account"
+        >>= expectElementAndMove "name"
+        >>= readElementTextAndMove (fun name _ -> name)
+        >>= expectEndElementAndMove
+        >>= expectElementAndMove "id"
+        >>= readElementTextAndMove (fun idStr state -> (Guid.Parse idStr, state))
+        >>= expectEndElementAndMove
+        >>= expectElementAndMove "type"
+        >>= readElementTextAndMove
+              (fun typeStr state ->
+                  let accType =
+                      match typeStr with
+                      | "ASSET" -> AssetAccount
+                      | "BANK" -> BankAccount
+                      | "CASH" -> CashAccount
+                      | "CREDIT" -> CreditAccount
+                      | "EQUITY" -> EquityAccount
+                      | "EXPENSE" -> ExpenseAccount
+                      | "INCOME" -> IncomeAccount
+                      | "LIABILITY" -> LiabilityAccount
+                      | "RECEIVABLE" -> ReceivableAccount
+                      | "ROOT" -> RootAccount
+                      | _ ->
+                        sprintf "Unsupported account type '%s'." typeStr
+                        |> invalidOp
+                      
+                  (accType, state))
+        >>= expectEndElementAndMove
+        >>= parseCommodityRef "commodity" pushToState
+        >>= expectElementAndMove "commodity-scu"
+        >>= readElementTextAndMove
+              (fun scuStr state ->
+                (Int32.Parse(scuStr, CultureInfo.InvariantCulture), state))
+        >>= expectEndElementAndMove
+        >>= parseSlots pushToState
+    
+    let y =
+        x |> mapValue
+            (fun x ->
+                let (slots, (scu, (commodity, (accType, (id, name))))) = x
+                
+                { Name = name; Type = accType; Id = id
+                  Commodity = commodity; CommodityScu = scu
+                  Description = None
+                  Slots = slots; ParentAccount = None
+                 } |> Some |> Ok
+              )
+          
+    y
   
 [<Fact>]
 let ``Can parse root account``() =

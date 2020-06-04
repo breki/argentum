@@ -74,3 +74,20 @@ let rec parseSlot<'T> (context: ParseContext<'T>): ParseResult<Slot option> =
     context
     |> parseIfElement "slot" parseIfSlot
 
+let parseSlots
+    (stateUpdate: Slot[] -> 'T -> 'U)
+    context: ParseResult<'U> =
+    let (_, state) = context
+        
+    context
+    |> expectElementAndMove "slots"
+    >>= (fun context ->
+                // todo igor: simplify
+                match parseSlotList parseSlot context with
+                | Ok (reader, slots) ->
+                    let slotsArray = slots |> List.toArray
+                    let newState = stateUpdate slotsArray state
+                    Ok (reader, newState)
+                | Error error -> Error error
+            )
+    >>= expectEndElementAndMove

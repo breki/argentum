@@ -198,7 +198,9 @@ let readElementTextResult
     expectNode XmlNodeType.Text context
     >>= readNodeValue
 
-let mapValue mapFunc (result: ParseResult<'T>): ParseResult<'U> =
+let mapValue
+    (mapFunc: 'T -> Result<'U, string>)
+    (result: ParseResult<'T>): ParseResult<'U> =
     match result with
     | Error err -> Error err
     | Ok (reader, parseValue) ->
