@@ -64,7 +64,7 @@ type Account = {
     CommodityScu: int
     Description: string option
     Slots: Slot[]
-    ParentAccount: Account option
+    ParentAccount: AccountId option
 }
 
 type ReconciledState =

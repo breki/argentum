@@ -59,7 +59,7 @@ let rec parseSlot<'T> (context: ParseContext<'T>): ParseResult<Slot option> =
         context
         |> readAttribute "type" (fun typ _ -> typ) >>= moveNext
         >>= parseSlotValue
-        |> mapValue (fun value -> Ok { Key = slotKey; Value = value})
+        >>= mapValue (fun value -> Ok { Key = slotKey; Value = value})
     
     let parseIfSlot context =
         context

@@ -15,6 +15,7 @@
         <e p="Model.fs" t="Include" />
         <e p="obj" t="ExcludeRecursive" />
         <e p="Parsing" t="Include">
+          <e p="Accounts.fs" t="Include" />
           <e p="Commodities.fs" t="Include" />
           <e p="Core.fs" t="Include" />
           <e p="Prices.fs" t="Include" />

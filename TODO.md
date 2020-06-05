@@ -1,8 +1,6 @@
 # Argentum to do
 
-- parseSlotList should accept a state update function
 - implement an XML reader for the model
-    - account
     - transaction
     - template-transactions
     - schedxaction

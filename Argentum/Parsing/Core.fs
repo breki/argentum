@@ -96,3 +96,20 @@ let parseCommodityRef
         let newState = state |> stateUpdate commodityRef
         (reader, newState)
     )
+
+let parseAccountRef elementName context =
+    context
+    |> expectElementAndMove elementName
+    >>= readElementTextAndMove (fun idStr state -> (Guid.Parse idStr, state))
+    >>= expectEndElementAndMove
+
+let parseAccountRefOptional elementName context =
+    context
+    |> parseConditional elementName
+        (fun context ->
+            context
+            |> expectElementAndMove elementName
+            >>= readElementTextAndMove
+                  (fun idStr state -> (Guid.Parse idStr |> Some, state))
+            >>= expectEndElementAndMove)
+        (fun state -> (None, state))

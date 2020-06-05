@@ -60,7 +60,7 @@ let parsePrice context: ParseResult<Price option> =
                 ) >>= moveNext
     >>= expectEndElementAndMove
     >>= moveNext
-    |> mapValue
+    >>= mapValue
            (fun (amount, (priceType, (source, (dateTime,
                                                (currency, (commodity, id))))))
                 ->
