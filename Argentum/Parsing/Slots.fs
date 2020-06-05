@@ -64,9 +64,7 @@ let rec parseSlot<'T> (context: ParseContext<'T>): ParseResult<Slot option> =
     let parseIfSlot context =
         context
         |> moveNext
-        >>= expectElementAndMove "key"
-        >>= readElementTextAndMove (fun value _ -> value)
-        >>= expectEndElementAndMove
+        >>= expectAndReadElementText "key" (fun value _ -> value)
         >>= expectElement "value"
         >>= readSlotValue
         >>= expectEndElementAndMove

@@ -13,6 +13,7 @@
         <Compile Include="XmlTests\parsing commodities.fs" />
         <Compile Include="XmlTests\parsing price DB.fs" />
         <Compile Include="XmlTests\parsing accounts.fs" />
+        <Compile Include="XmlTests\parsing transactions.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
 

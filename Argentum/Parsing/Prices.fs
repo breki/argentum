@@ -20,8 +20,7 @@ let parsePrice context: ParseResult<Price option> =
     >>= parseCommodityRef "commodity" pushToState
     >>= parseCommodityRef "currency" pushToState
     >>= parseTime "time" pushToState
-    >>= expectElementAndMove "source"
-    >>= readElementTextAndMove
+    >>= expectAndReadElementText "source"
             (fun sourceText state ->
                 let source =
                     match sourceText with
@@ -34,12 +33,10 @@ let parsePrice context: ParseResult<Price option> =
                         
                 (source, state)
             )
-    >>= expectEndElementAndMove
     >>= parseConditional "type"
         (fun context ->
             context
-            |> moveNext
-            >>= readElementTextAndMove
+            |> expectAndReadElementText "type"
                     (fun typeText state ->
                         let priceType =
                             match typeText with
@@ -51,7 +48,7 @@ let parsePrice context: ParseResult<Price option> =
                                 |> invalidOp
                         (priceType, state)
                     )
-            >>= expectEndElementAndMove)
+                )
         (fun state -> (None, state))
     >>= expectElementAndMove "value"
     >>= readElementTextResult

@@ -260,3 +260,12 @@ let readElementTextAndMove
     (stateUpdate: string -> 'T -> 'U)
     context =
     context |> readElementText stateUpdate >>= moveNext
+
+let expectAndReadElementText
+    expectedElementName
+    (stateUpdate: string -> 'T -> 'U)
+    context =
+    context
+    |> expectElementAndMove expectedElementName
+    >>= readElementTextAndMove stateUpdate
+    >>= expectEndElementAndMove

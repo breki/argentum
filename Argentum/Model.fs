@@ -81,7 +81,7 @@ type Split = {
 
 type Transaction = {
     Id: Guid
-    Currency: CurrencyId
+    Currency: CommodityRef
     DatePosted: DateTime 
     DateEntered: DateTime 
     Description: string

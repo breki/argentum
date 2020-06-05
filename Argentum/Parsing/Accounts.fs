@@ -11,12 +11,9 @@ let parseAccount context =
     
     context
     |> expectElementAndMove "account"
-    >>= expectElementAndMove "name"
-    >>= readElementTextAndMove (fun name _ -> name)
-    >>= expectEndElementAndMove
+    >>= expectAndReadElementText "name" (fun name _ -> name)
     >>= parseAccountRef "id"
-    >>= expectElementAndMove "type"
-    >>= readElementTextAndMove
+    >>= expectAndReadElementText "type"
           (fun typeStr state ->
               let accType =
                   match typeStr with
@@ -35,20 +32,15 @@ let parseAccount context =
                     |> invalidOp
                   
               (accType, state))
-    >>= expectEndElementAndMove
     >>= parseCommodityRef "commodity" pushToState
-    >>= expectElementAndMove "commodity-scu"
-    >>= readElementTextAndMove
+    >>= expectAndReadElementText "commodity-scu"
           (fun scuStr state ->
             (Int32.Parse(scuStr, CultureInfo.InvariantCulture), state))
-    >>= expectEndElementAndMove
     >>= parseConditional "description"
           (fun context ->
               context
-              |> moveNext
-              >>= readElementTextAndMove
+              |> expectAndReadElementText "description"
                     (fun description state -> (Some description, state))
-              >>= expectEndElementAndMove
           )
           (fun state -> (None, state))
     >>= parseSlots pushToState

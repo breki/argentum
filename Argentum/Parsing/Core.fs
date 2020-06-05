@@ -47,10 +47,8 @@ let parseTime
     let dateTime =
         context
         |> expectElementAndMove expectedElementName
-        >>= expectElementAndMove "date"
-        >>= readElementTextAndMove
+        >>= expectAndReadElementText "date"
                 (fun dateTimeStr _ -> DateTime.Parse(dateTimeStr))
-        >>= expectEndElementAndMove
         >>= expectEndElementAndMove
         
     dateTime
@@ -70,9 +68,7 @@ let parseCommodityRef
         match space with
         | "CURRENCY" ->
             context
-            |> expectElementAndMove "id"
-            >>= readElementTextAndMove (fun id _ -> id)
-            >>= expectEndElementAndMove
+            |> expectAndReadElementText "id" (fun id _ -> id)
             >>= skipToElementEnd
             >>= (fun (reader, id) ->
                     let commodityRef = CurrencyRef id 
@@ -86,9 +82,7 @@ let parseCommodityRef
     let commodityRef =
         context
         |> expectElementAndMove expectedElementName
-        >>= expectElementAndMove "space"
-        >>= readElementTextAndMove (fun space _ -> space)
-        >>= expectEndElementAndMove
+        >>= expectAndReadElementText "space" (fun space _ -> space)
         >>= parseCommodityRefBasedOnSpace
       
     commodityRef
@@ -99,17 +93,15 @@ let parseCommodityRef
 
 let parseAccountRef elementName context =
     context
-    |> expectElementAndMove elementName
-    >>= readElementTextAndMove (fun idStr state -> (Guid.Parse idStr, state))
-    >>= expectEndElementAndMove
+    |> expectAndReadElementText elementName
+            (fun idStr state -> (Guid.Parse idStr, state))
 
 let parseAccountRefOptional elementName context =
     context
     |> parseConditional elementName
         (fun context ->
             context
-            |> expectElementAndMove elementName
-            >>= readElementTextAndMove
+            |> expectAndReadElementText elementName
                   (fun idStr state -> (Guid.Parse idStr |> Some, state))
-            >>= expectEndElementAndMove)
+            )
         (fun state -> (None, state))

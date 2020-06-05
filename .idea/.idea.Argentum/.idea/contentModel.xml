@@ -35,6 +35,7 @@
           <e p="parsing commodities.fs" t="Include" />
           <e p="parsing price DB.fs" t="Include" />
           <e p="parsing slots.fs" t="Include" />
+          <e p="parsing transactions.fs" t="Include" />
           <e p="ParsingHelpers.fs" t="Include" />
         </e>
       </e>

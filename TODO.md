@@ -1,7 +1,8 @@
 # Argentum to do
 
+- transaction
+
 - implement an XML reader for the model
-    - transaction
     - template-transactions
     - schedxaction
     - budget
