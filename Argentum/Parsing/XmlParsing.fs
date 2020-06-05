@@ -79,8 +79,8 @@ let expectElement
         | XmlNodeType.Element -> Ok()
         | nodeType ->
             sprintf
-                "Expected XML node type '%A', got %A ('%A')"
-                    XmlNodeType.Element nodeType reader.Name
+                "Expected XML node type %A ('%A'), got %A ('%A')"
+                    XmlNodeType.Element expectedElementName nodeType reader.Name
             |> Error    
     else
         Error "Unexpected end of XML"
@@ -200,11 +200,10 @@ let readElementTextResult
 
 let mapValue
     (mapFunc: 'T -> Result<'U, string>)
-    (result: ParseResult<'T>): ParseResult<'U> =
-    match result with
-    | Error err -> Error err
-    | Ok (reader, parseValue) ->
-        mapFunc parseValue |> Result.map (fun newValue -> (reader, newValue))
+    (context: ParseContext<'T>)
+    : ParseResult<'U> =
+    let reader, parseValue = context
+    mapFunc parseValue |> Result.map (fun newValue -> (reader, newValue))
 
 
 /// <summary>
@@ -246,7 +245,7 @@ let rec parseList
 
     context
     |> parseListInternal [] itemElementName itemParser
-    |> mapValue (fun reversedList -> reversedList |> List.rev |> Ok) 
+    >>= mapValue (fun reversedList -> reversedList |> List.rev |> Ok) 
 
 let expectElementAndMove expectedElementName context =
     context |> expectElement expectedElementName >>= moveNext
