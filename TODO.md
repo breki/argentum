@@ -1,5 +1,7 @@
 # Argentum to do
 
+- `expectAndReadElementText`: what if it is empty?
+    - write some tests for the basic parsing
 - parseAmount should be streamlined to support stateUpdate
 - transaction
 

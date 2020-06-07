@@ -175,13 +175,18 @@ let readElementText
     (stateUpdate: string -> 'T -> 'U)
     (context: ParseContext<'T>)
     : ParseResult<'U> =
-    let readNodeValue ((reader, state): ParseContext<'T>): ParseResult<'U> =
-        let nodeValue = reader.Value
-        let newState = stateUpdate nodeValue state
-        Ok (reader, newState)
+//    let readNodeValue ((reader, state): ParseContext<'T>): ParseResult<'U> =
+//        let nodeValue = reader.Value
+//        let newState = stateUpdate nodeValue state
+//        Ok (reader, newState)
+//    
+//    expectNode XmlNodeType.Text context
+//    >>= readNodeValue
     
-    expectNode XmlNodeType.Text context
-    >>= readNodeValue
+    let (reader, state) = context
+    let text = reader.ReadElementContentAsString()
+    let newState = stateUpdate text state
+    Ok (reader, newState)
 
 /// <summary>
 /// Reads the current XML element's inner text and then using this value it
