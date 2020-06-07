@@ -17,6 +17,10 @@ let (>>=)
 /// </summary>
 let pushToState value state = (value, state)
 
+let updateState stateUpdate context = 
+    context
+    |> (fun (reader, state) -> Ok (reader, stateUpdate state))
+    
 /// <summary>
 /// Reads the value of the specified attribute and then using this value it
 /// updates the parsing context state using the provided function.
@@ -118,11 +122,9 @@ let parseConditional
     (stateUpdateIfNoElement: 'T -> 'U) 
     (context: ParseContext<'T>)
      : ParseResult<'U> =
-    let (reader, state) = context
+    let (reader, _) = context
     
-    let whenNotFound() =
-        let newState = state |> stateUpdateIfNoElement
-        Ok (reader, newState)
+    let whenNotFound() = context |> updateState stateUpdateIfNoElement
     
     if not reader.EOF then
         match reader.NodeType with

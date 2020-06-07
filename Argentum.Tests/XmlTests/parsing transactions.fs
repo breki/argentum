@@ -10,24 +10,79 @@ open Swensen.Unquote
 open Argentum.Tests.XmlTests.ParsingHelpers
 
 let parseTransaction context =
-    let (reader, _) = context
-    
-    let x = 
-      context
-      |> expectElementAndMove "transaction"
-      >>= expectAndReadElementText "id" (fun id _ -> id)
-      >>= parseCommodityRef "currency" pushToState
-      >>= parseTime "date-posted" pushToState
-      >>= parseTime "date-entered" pushToState
-      >>= expectAndReadElementText "description" pushToState
-    
-    let transaction = {
-          Id = Guid.NewGuid(); Currency = CurrencyRef "EUR"
-          DatePosted = DateTime(); DateEntered = DateTime()
-          Description = ""; Slots = [||]; Splits = [||] }
-    
-    Ok (reader, Some transaction)
-
+    let parseSplit context =
+        context
+        |> expectElementAndMove "split"
+        >>= expectAndReadElementText "id" (fun id _ -> Guid.Parse id)
+        >>= expectAndReadElementText "reconciled-state"
+              (fun reconciledStr state ->
+                  let reconciled  =
+                      match reconciledStr with
+                      | "n" -> NotReconciled
+                      | "c" -> Reconciled
+                      | _ ->
+                          sprintf
+                            "Unsupported reconciled state '%s'." reconciledStr
+                          |> invalidOp
+              
+                  (reconciled, state)
+              )
+        >>= expectEndElementAndMove
+        >>= expectAndReadElementText "value"
+                (fun text state ->
+                    match parseAmount text with
+                    | Ok amount -> (amount, state)
+                    | Error error ->
+                        sprintf "Invalid amount '%s': %s." text error
+                        |> invalidOp
+                )        
+        >>= expectAndReadElementText "quantity"
+                (fun text state ->
+                    match parseAmount text with
+                    | Ok amount -> (amount, state)
+                    | Error error ->
+                        sprintf "Invalid amount '%s': %s." text error
+                        |> invalidOp
+                )        
+        >>= parseAccountRef "account"
+        >>= mapValue
+                (fun (account, (quantity, (value, (reconciled, id)))) ->
+                    { Id = id; ReconciledState = reconciled
+                      Value = value; Quantity = quantity
+                      Account = account } |> Some |> Ok
+                 )
+        
+    let parseSplits
+        (stateUpdate: Split list -> 'T -> Split list * 'U)
+        (context: ParseContext<'T>)
+        : ParseResult<Split list * 'U> =
+        let (_, state) = context
+            
+        let splits = context |> parseList "split" parseSplit
+        match splits with
+        | Ok (reader, splits) -> 
+            let newState = stateUpdate splits state
+            Ok (reader, newState)
+        | Error error -> Error error
+        
+    context
+    |> expectElementAndMove "transaction"
+    >>= expectAndReadElementText "id" (fun id _ -> Guid.Parse id)
+    >>= parseCommodityRef "currency" pushToState
+    >>= parseTime "date-posted" pushToState
+    >>= parseTime "date-entered" pushToState
+    >>= expectAndReadElementText "description" pushToState
+    >>= parseSplits pushToState
+    >>= mapValue
+            (fun (splits, (description, (dateEntered,
+                                         (datePosted, (currency, id))))) ->
+                {
+                  Id = id; Currency = currency
+                  DatePosted = datePosted; DateEntered = dateEntered
+                  Description = description; Slots = [||]
+                  Splits = splits |> List.toArray }
+                |> Some |> Ok
+             )
 
 [<Fact>]
 let ``Can parse transaction``() =

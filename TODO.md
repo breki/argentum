@@ -1,5 +1,6 @@
 # Argentum to do
 
+- parseAmount should be streamlined to support stateUpdate
 - transaction
 
 - implement an XML reader for the model
