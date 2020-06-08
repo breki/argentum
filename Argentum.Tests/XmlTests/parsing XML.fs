@@ -16,11 +16,21 @@ let ``Reads element text when non-empty``() =
              |> expectAndReadElementText "a" (fun text _ -> text)
              |> parsedValue = Ok "some text"
          @>
-    
 
 [<Fact>]
 let ``Returns empty string when element text is empty``() =
     let xml = @"<a></a>"
+    let doc = buildXml xml |> withReader
+    
+    test <@
+             doc
+             |> expectAndReadElementText "a" (fun text _ -> text)
+             |> parsedValue = Ok ""
+         @>
+
+[<Fact>]
+let ``Returns empty string when element is closed``() =
+    let xml = @"<a/>"
     let doc = buildXml xml |> withReader
     
     test <@
