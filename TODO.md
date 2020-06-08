@@ -1,8 +1,8 @@
 # Argentum to do
 
-- parseAmount should be streamlined to support stateUpdate
 - transaction
     - splits can have slots, too
+    - implement reading of splits for transaction and slots - write tests
 
 - implement an XML reader for the model
     - template-transactions

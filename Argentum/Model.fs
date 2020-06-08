@@ -77,6 +77,7 @@ type Split = {
     Value: Amount
     Quantity: Amount
     Account: AccountId
+    Slots: Slot[]
 }
 
 type Transaction = {
