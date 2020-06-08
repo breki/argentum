@@ -14,9 +14,8 @@ let parsePrice context: ParseResult<Price option> =
         (fun idType _ ->
           match idType with
           | "guid" -> Ok None
-          | _ -> Error "Unsupported price ID type.") >>= moveNext
-    >>= readElementTextAndMove (fun id _ -> Guid.Parse id)
-    >>= expectEndElementAndMove
+          | _ -> Error "Unsupported price ID type.")
+    >>= readElementText (fun id _ -> Guid.Parse id)
     >>= parseCommodityRef "commodity" pushToState
     >>= parseCommodityRef "currency" pushToState
     >>= parseTime "time" pushToState
@@ -50,13 +49,11 @@ let parsePrice context: ParseResult<Price option> =
                     )
                 )
         (fun state -> (None, state))
-    >>= expectElementAndMove "value"
+    >>= expectElement "value"
     >>= readElementTextResult
             (fun text state ->
                 parseAmount text |> Result.map (fun amount -> (amount, state))
-                ) >>= moveNext
-    >>= expectEndElementAndMove
-    >>= moveNext
+                ) 
     >>= mapValue
            (fun (amount, (priceType, (source, (dateTime,
                                                (currency, (commodity, id))))))

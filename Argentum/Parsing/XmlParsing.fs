@@ -175,14 +175,6 @@ let readElementText
     (stateUpdate: string -> 'T -> 'U)
     (context: ParseContext<'T>)
     : ParseResult<'U> =
-//    let readNodeValue ((reader, state): ParseContext<'T>): ParseResult<'U> =
-//        let nodeValue = reader.Value
-//        let newState = stateUpdate nodeValue state
-//        Ok (reader, newState)
-//    
-//    expectNode XmlNodeType.Text context
-//    >>= readNodeValue
-    
     let (reader, state) = context
     let text = reader.ReadElementContentAsString()
     let newState = stateUpdate text state
@@ -197,13 +189,12 @@ let readElementTextResult
     (stateUpdate: string -> 'T -> Result<'U, string>)
     (context: ParseContext<'T>)
     : ParseResult<'U> =
-    let readNodeValue ((reader, state): ParseContext<'T>): ParseResult<'U> =
-        let nodeValue = reader.Value
-        stateUpdate nodeValue state
-        |> Result.map (fun newState -> (reader, newState))
-    
-    expectNode XmlNodeType.Text context
-    >>= readNodeValue
+
+    let (reader, state) = context
+    let text = reader.ReadElementContentAsString()
+    match stateUpdate text state with
+    | Ok newState -> Ok (reader, newState)
+    | Error error -> Error error
 
 let mapValue
     (mapFunc: 'T -> Result<'U, string>)
@@ -263,16 +254,10 @@ let expectElementAndMove expectedElementName context =
 let expectEndElementAndMove context =
     context |> expectEndElement >>= moveNext
 
-let readElementTextAndMove
-    (stateUpdate: string -> 'T -> 'U)
-    context =
-    context |> readElementText stateUpdate >>= moveNext
-
 let expectAndReadElementText
     expectedElementName
     (stateUpdate: string -> 'T -> 'U)
     context =
     context
-    |> expectElementAndMove expectedElementName
-    >>= readElementTextAndMove stateUpdate
-    >>= expectEndElementAndMove
+    |> expectElement expectedElementName
+    >>= readElementText stateUpdate
