@@ -1,9 +1,6 @@
 # Argentum to do
 
-- transaction
-    - splits can have slots, too
-    - implement reading of splits for transaction and slots - write tests
-
+- implement code to parse the whole XML file
 - implement an XML reader for the model
     - template-transactions
     - schedxaction
