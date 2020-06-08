@@ -2,8 +2,10 @@
 
 - `expectAndReadElementText`: what if it is empty?
     - write some tests for the basic parsing
+- fix todo igor
 - parseAmount should be streamlined to support stateUpdate
 - transaction
+    - splits can have slots, too
 
 - implement an XML reader for the model
     - template-transactions

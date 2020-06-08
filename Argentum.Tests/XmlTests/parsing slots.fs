@@ -48,8 +48,10 @@ let ``Can parse date slot``() =
     let expectedSlot = Some {
         Key = "color"
         Value = SlotDate(DateTime(2019, 04, 30))
-    }       
-    test <@ parseSlot doc |> parsedOptionalValue = Ok expectedSlot @>
+    }
+    
+    let actualValue = parseSlot doc |> parsedOptionalValue
+    test <@ actualValue = Ok expectedSlot @>
 
 [<Fact>]
 let ``Can parse GUID slot``() =
@@ -113,7 +115,8 @@ let ``Can parse a hierarchy of slots``() =
         Value = SlotOfSlots
                     ([| { Key = "color"
                           Value = SlotString("#1469EB") } |])
-    } 
+    }
+    
     test <@ parseSlot doc |> parsedOptionalValue = Ok expectedSlot @>
 
 [<Fact>]

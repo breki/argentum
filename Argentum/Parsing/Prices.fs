@@ -63,6 +63,7 @@ let parsePrice context: ParseResult<Price option> =
                       Value = amount }
                      |> Some |> Ok
                     )
+    >>= expectEndElementWithName "price" >>= moveNext
 
 let parsePriceDb (context: ParseContext<'T>): ParseResult<Price list> =
     context

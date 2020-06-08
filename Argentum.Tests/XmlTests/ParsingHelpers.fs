@@ -65,4 +65,3 @@ let parsedOptionalValue (result: ParseResult<'T option>)
     match result with
     | Ok (_, value) -> Ok value
     | Error err -> Error err
-

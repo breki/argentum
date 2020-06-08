@@ -162,6 +162,19 @@ let parseIfElement
 let expectEndElement (context: ParseContext<'T>): ParseResult<'T> =
     expectNode XmlNodeType.EndElement context
 
+let expectEndElementWithName
+    expectedElementName (context: ParseContext<'T>): ParseResult<'T> =
+    expectNode XmlNodeType.EndElement context
+    >>= (fun context -> 
+        let (reader, _) = context
+        match reader.LocalName with
+        | x when x = expectedElementName -> Ok context
+        | actualElementName ->
+            sprintf "Expected '%s' end element, got %A '%s'"
+                expectedElementName reader.NodeType actualElementName
+            |> Error
+        )
+
 let skipToElementEnd (context: ParseContext<'T>): ParseResult<'T> =
     let (reader, value) = context
     reader.Skip() |> ignore

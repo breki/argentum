@@ -27,7 +27,6 @@ let parseTransaction context =
               
                   (reconciled, state)
               )
-        >>= expectEndElementAndMove
         >>= expectAndReadElementText "value"
                 (fun text state ->
                     match parseAmount text with
@@ -51,6 +50,7 @@ let parseTransaction context =
                       Value = value; Quantity = quantity
                       Account = account } |> Some |> Ok
                  )
+        >>= expectEndElementWithName "split" >>= moveNext
         
     let parseSplits
         (stateUpdate: Split list -> 'T -> Split list * 'U)
@@ -58,7 +58,10 @@ let parseTransaction context =
         : ParseResult<Split list * 'U> =
         let (_, state) = context
             
-        let splits = context |> parseList "split" parseSplit
+        let splits =
+            context
+            |> expectElementAndMove "splits"
+            >>= parseList "split" parseSplit
         match splits with
         | Ok (reader, splits) -> 
             let newState = stateUpdate splits state
