@@ -55,13 +55,13 @@ let ``Can parse transaction``() =
           Description = ""
           Splits = [|
             { Id = Guid.Parse "cbf9f1e13f2a4ce3a7892d6855f9e167"
-              ReconciledState = NotReconciled
+              ReconciledState = NotReconciled; Memo = None; Action = None
               Value = amount2 402840 100
               Quantity = amount2 402840 100
               Account = Guid.Parse "b1cb20c3604344db8e53d7142370e8bb"
               Slots = [||] };
             { Id = Guid.Parse "65c5a470dca64a7c961cddae7f6235dd"
-              ReconciledState = NotReconciled
+              ReconciledState = NotReconciled; Memo = None; Action = None
               Value = amount2 -402840 100
               Quantity = amount2 -402840 100
               Account = Guid.Parse "5d7398633947af8ba50018145eb824e0"
@@ -130,13 +130,13 @@ let ``Can parse transaction with slots``() =
           Description = ""
           Splits = [|
             { Id = Guid.Parse "cbf9f1e13f2a4ce3a7892d6855f9e167"
-              ReconciledState = NotReconciled
+              ReconciledState = NotReconciled; Memo = None; Action = None
               Value = amount2 402840 100
               Quantity = amount2 402840 100
               Account = Guid.Parse "b1cb20c3604344db8e53d7142370e8bb"
               Slots = [||] };
             { Id = Guid.Parse "65c5a470dca64a7c961cddae7f6235dd"
-              ReconciledState = NotReconciled
+              ReconciledState = NotReconciled; Memo = None; Action = None
               Value = amount2 -402840 100
               Quantity = amount2 -402840 100
               Account = Guid.Parse "5d7398633947af8ba50018145eb824e0"
@@ -209,7 +209,7 @@ let ``Can parse splits with slots``() =
           Description = ""
           Splits = [|
             { Id = Guid.Parse "cbf9f1e13f2a4ce3a7892d6855f9e167"
-              ReconciledState = NotReconciled
+              ReconciledState = NotReconciled; Memo = None; Action = None
               Value = amount2 402840 100
               Quantity = amount2 402840 100
               Account = Guid.Parse "b1cb20c3604344db8e53d7142370e8bb"
@@ -221,7 +221,7 @@ let ``Can parse splits with slots``() =
                 }
               |] };
             { Id = Guid.Parse "65c5a470dca64a7c961cddae7f6235dd"
-              ReconciledState = NotReconciled
+              ReconciledState = NotReconciled; Memo = None; Action = None
               Value = amount2 -402840 100
               Quantity = amount2 -402840 100
               Account = Guid.Parse "5d7398633947af8ba50018145eb824e0"

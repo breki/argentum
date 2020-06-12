@@ -75,6 +75,7 @@ type ReconciledState =
 type Split = {
     Id: Guid
     Memo: string option
+    Action: string option
     ReconciledState: ReconciledState
     Value: Amount
     Quantity: Amount

@@ -125,5 +125,5 @@ let ``Can parse whole XML file``() =
         test <@ book.PriceDb |> Option.isSome @>
         test <@ book.PriceDb |> Option.get |> List.length = 40 @>
         test <@ book.Accounts |> List.length = 120 @>
-        test <@ book.Transactions |> List.length = 10 @>
+        test <@ book.Transactions |> List.length = 1480 @>
     | Error error -> invalidOp error 

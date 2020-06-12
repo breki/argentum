@@ -12,7 +12,19 @@ let parseTransaction context =
         |> expectElementAndMove "split"
         >>= expectAndReadElementText "id" (fun id _ -> Guid.Parse id)
         >>= parseConditional "memo"
-            
+          (fun context ->
+              context
+              |> expectAndReadElementText "memo"
+                    (fun memo state -> (Some memo, state))
+          )
+          (fun state -> (None, state))            
+        >>= parseConditional "action"
+          (fun context ->
+              context
+              |> expectAndReadElementText "action"
+                    (fun action state -> (Some action, state))
+          )
+          (fun state -> (None, state))            
         >>= expectAndReadElementText "reconciled-state"
               (fun reconciledStr state ->
                   let reconciled  =
@@ -47,8 +59,11 @@ let parseTransaction context =
               (fun context -> context |> parseSlots pushToState)
               (fun state -> ([||], state))        
         >>= mapValue
-                (fun (slots, (account, (quantity, (value, (reconciled, id))))) ->
-                    { Id = id; ReconciledState = reconciled
+                (fun (slots,
+                      (account, (quantity, (value, (reconciled,
+                                                    (action, (memo, id))))))) ->
+                    { Id = id; Memo = memo; Action = action
+                      ReconciledState = reconciled
                       Value = value; Quantity = quantity
                       Account = account; Slots = slots } |> Some |> Ok
                  )
