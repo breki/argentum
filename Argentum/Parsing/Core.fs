@@ -69,7 +69,7 @@ let parseCommodityRef
         | "CURRENCY" ->
             context
             |> expectAndReadElementText "id" (fun id _ -> id)
-            >>= skipToElementEnd
+            >>= skipToNext
             >>= (fun (reader, id) ->
                     let commodityRef = CurrencyRef id 
                     Ok (reader, commodityRef))

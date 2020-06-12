@@ -15,6 +15,7 @@
         <Compile Include="XmlTests\parsing price DB.fs" />
         <Compile Include="XmlTests\parsing accounts.fs" />
         <Compile Include="XmlTests\parsing transactions.fs" />
+        <Compile Include="XmlTests\parsing whole files.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
 

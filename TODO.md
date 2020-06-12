@@ -1,6 +1,9 @@
 # Argentum to do
 
 - implement code to parse the whole XML file
+    - implement non-recursive `parseElements`
+- introduce `Parser` and `ParserTransformer`
+
 - implement an XML reader for the model
     - template-transactions
     - schedxaction

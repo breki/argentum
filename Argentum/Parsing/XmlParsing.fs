@@ -21,6 +21,21 @@ let updateState stateUpdate context =
     context
     |> (fun (reader, state) -> Ok (reader, stateUpdate state))
     
+let moveNext ((reader: XmlReader), state): ParseResult<'T> =
+    if not reader.EOF then
+        reader.Read() |> ignore
+        Ok (reader, state)
+    else Result.Error "Unexpected end of XML"
+    
+let expectXmlDeclarationAndMove (context: ParseContext<'T>) =
+    let (reader, _) = context
+
+    match reader.NodeType with
+    | XmlNodeType.XmlDeclaration -> context |> moveNext
+    | unexpectedNodeType ->
+        sprintf "Expected XML node declaration, but got %A" unexpectedNodeType
+        |> invalidOp
+    
 /// <summary>
 /// Reads the value of the specified attribute and then using this value it
 /// updates the parsing context state using the provided function.
@@ -50,12 +65,6 @@ let readAttributeResult
     | value ->
         stateUpdate value state
         |> Result.map (fun newState -> (reader, newState))
-
-let moveNext ((reader: XmlReader), state): ParseResult<'T> =
-    if not reader.EOF then
-        reader.Read() |> ignore
-        Ok (reader, state)
-    else Result.Error "Unexpected end of XML"
 
 let expectNode
     (expectedType: XmlNodeType)
@@ -175,7 +184,7 @@ let expectEndElementWithName
             |> Error
         )
 
-let skipToElementEnd (context: ParseContext<'T>): ParseResult<'T> =
+let skipToNext (context: ParseContext<'T>): ParseResult<'T> =
     let (reader, value) = context
     reader.Skip() |> ignore
     Ok (reader, value)
@@ -261,6 +270,9 @@ let rec parseList
 let expectElementAndMove expectedElementName context =
     context |> expectElement expectedElementName >>= moveNext
 
+let expectElementAndSkipToNext expectedElementName context =
+    context |> expectElement expectedElementName >>= skipToNext
+
 /// <summary>
 /// Expects the current node type to be an end element and moves forward.
 /// </summary>
@@ -274,3 +286,9 @@ let expectAndReadElementText
     context
     |> expectElement expectedElementName
     >>= readElementText stateUpdate
+
+let skipIfElement elementName context =
+    context
+    |> parseConditional elementName
+        (fun context -> context |> skipToNext)
+        id

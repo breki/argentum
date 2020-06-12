@@ -11,13 +11,26 @@ let parseCommodity context: ParseResult<Commodity option> =
         | "CURRENCY" ->
             context
             |> expectAndReadElementText "id" pushToState
-            >>= skipToElementEnd
+            >>= skipIfElement "name"
+            >>= skipIfElement "xcode"
+            >>= skipIfElement "fraction"
+            >>= expectElementAndSkipToNext "get_quotes"
+            >>= expectElementAndSkipToNext "quote_source"
+            >>= expectElementAndSkipToNext "quote_tz"
+            >>= expectEndElementWithName "commodity" >>= moveNext
             >>= (fun (reader, (id, (_, (version)))) ->
                     let commodity
                         = Currency { Version = Version(version); Id = id }
                     Ok (reader, Some commodity))
         | "template" ->
             let (reader, _) = context
+            context
+            |> skipIfElement "id"
+            >>= skipIfElement "name"
+            >>= skipIfElement "xcode"
+            >>= skipIfElement "fraction"
+            >>= expectEndElementWithName "commodity" >>= moveNext
+            |> ignore
             Ok (reader, None)
         | _ ->
             sprintf "Commodity space '%s' is not supported." space

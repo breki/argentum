@@ -110,3 +110,10 @@ type Price = {
 }
 
 type PriceDb = Price seq
+
+type Book = {
+    Commodities: Commodity list
+    PriceDb: PriceDb option
+    Accounts: Account list
+    Transactions: Transaction list
+}
