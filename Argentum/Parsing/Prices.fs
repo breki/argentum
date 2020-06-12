@@ -65,7 +65,7 @@ let parsePrice context: ParseResult<Price option> =
                     )
     >>= expectEndElementWithName "price" >>= moveNext
 
-let parsePriceDb (context: ParseContext<'T>): ParseResult<Price list> =
+let parsePriceDb (context: ParseContext<'T>): ParseResult<PriceDb> =
     context
     |> expectElementAndMove "pricedb"
     >>= parseList "price" parsePrice

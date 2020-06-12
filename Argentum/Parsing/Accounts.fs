@@ -43,15 +43,26 @@ let parseAccount context =
                     (fun description state -> (Some description, state))
           )
           (fun state -> (None, state))
-    >>= parseSlots pushToState
+    >>= parseConditional "code"
+          (fun context ->
+              context
+              |> expectAndReadElementText "code"
+                    (fun code state -> (Some code, state))
+          )
+          (fun state -> (None, state))
+    >>= parseConditional "slots"
+          (fun context -> context |> parseSlots pushToState)
+          (fun state -> ([||], state))
     >>= parseAccountRefOptional "parent"
+    >>= expectEndElementWithName "account" >>= moveNext
     >>= mapValue
-        (fun (parent, (slots, (description, (scu, (commodity,
-                                                   (accType, (id, name)))))))
+        (fun (parent, (slots, (code, (description, (scu, (commodity,
+                                                        (accType,
+                                                         (id, name))))))))
           ->
             { Name = name; Type = accType; Id = id
               Commodity = commodity; CommodityScu = scu
-              Description = description
+              Description = description; Code = code
               Slots = slots; ParentAccount = parent
              } |> Some |> Ok
           )

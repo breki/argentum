@@ -77,7 +77,7 @@ let expectNode
         | nodeType ->
             sprintf
                 "Expected XML node type '%A', got %A ('%A')"
-                    expectedType nodeType reader.Name
+                    expectedType nodeType reader.LocalName
             |> Error
     else
         Error "Unexpected end of XML"
@@ -93,7 +93,8 @@ let expectElement
         | nodeType ->
             sprintf
                 "Expected XML node type %A ('%A'), got %A ('%A')"
-                    XmlNodeType.Element expectedElementName nodeType reader.Name
+                    XmlNodeType.Element expectedElementName nodeType
+                    reader.LocalName
             |> Error    
     else
         Error "Unexpected end of XML"

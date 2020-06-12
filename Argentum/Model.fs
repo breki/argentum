@@ -63,6 +63,7 @@ type Account = {
     Commodity: CommodityRef
     CommodityScu: int
     Description: string option
+    Code: string option
     Slots: Slot[]
     ParentAccount: AccountId option
 }
@@ -73,6 +74,7 @@ type ReconciledState =
 
 type Split = {
     Id: Guid
+    Memo: string option
     ReconciledState: ReconciledState
     Value: Amount
     Quantity: Amount
@@ -109,7 +111,7 @@ type Price = {
     Value: Amount
 }
 
-type PriceDb = Price seq
+type PriceDb = Price list
 
 type Book = {
     Commodities: Commodity list

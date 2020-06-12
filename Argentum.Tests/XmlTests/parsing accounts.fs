@@ -36,7 +36,7 @@ let ``Can parse root account``() =
         Name = "Root Account"; Type = RootAccount
         Id = Guid.Parse("a6cb26f377e4ecbd6d5122484a4e283b")
         Commodity = CurrencyRef "EUR"; CommodityScu = 100
-        Description = None; ParentAccount = None
+        Description = None; Code = None; ParentAccount = None
         Slots = [|
           { Key = "favorite"; Value = SlotString "false" }
         |]
@@ -82,7 +82,7 @@ let ``Can parse non-root account``() =
         Name = "Assets"; Type = AssetAccount
         Id = Guid.Parse("11fa67ab80d2e7862fecf31fc390c5c2")
         Commodity = CurrencyRef "EUR"; CommodityScu = 100
-        Description = Some "Assets"
+        Description = Some "Assets"; Code = None
         ParentAccount = Guid.Parse("a6cb26f377e4ecbd6d5122484a4e283b") |> Some
         Slots = [|
           { Key = "color"; Value = SlotString "#1469EB" }
