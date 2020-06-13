@@ -1,5 +1,8 @@
 # Argentum to do
 
+- implement a balance-on-date function
+    - finds all transactions <= date
+
 - implement code to parse the whole XML file
     - implement non-recursive `parseElements`
 - introduce `Parser` and `ParserTransformer`
@@ -13,7 +16,6 @@
 - import command line parsing code from Demetron
 - prepare a command to anonymize a GnuCash XML file
     - create an anonymized sample XML file and add it to the source control
-- implement an integration test that reads that sample XML file
 - define a report command that generates a balance graph
     - which JS library to use for visualization?
         - D3 perhaps (so we can learn D3)?
