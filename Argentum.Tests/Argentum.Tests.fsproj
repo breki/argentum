@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Compile Include="calculating exchange rates.fs" />
         <Compile Include="XmlTests\ParsingHelpers.fs" />
         <Compile Include="XmlTests\parsing XML.fs" />
         <Compile Include="XmlTests\parsing slots.fs" />

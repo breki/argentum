@@ -7,6 +7,7 @@
 
     <ItemGroup>
         <Compile Include="Model.fs" />
+        <Compile Include="ExchangeRates.fs" />
         <Compile Include="Parsing\XmlParsing.fs" />
         <Compile Include="Parsing\Core.fs" />
         <Compile Include="Parsing\Slots.fs" />

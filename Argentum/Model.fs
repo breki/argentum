@@ -9,6 +9,7 @@ type Amount = {
 
 let amount2 dividend divisor = { Dividend = dividend; Divisor = divisor }
 let amount1 dividend = 1 |> amount2 dividend  
+let amountFloat amount = ((float amount.Dividend) / (float amount.Divisor))
 
 type SlotValue =
     | SlotString of string
