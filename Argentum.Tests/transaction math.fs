@@ -1,65 +1,11 @@
-﻿module Argentum.Tests.``calculating balance``
+﻿module Argentum.Tests.``transaction math``
 
-open System
-open Argentum.ExchangeRates
+open Argentum.TransactionMath
 open Argentum.Model
 open Argentum.Tests.Builders
 open FsUnit
 open Xunit
 open Swensen.Unquote
-
-let transactionNetBalance
-    (transaction: Transaction) (accounts: Accounts) prices baseCurrency =
-    // for each split
-    transaction.Splits
-    |> Array.map (fun split ->
-        // get its account
-        let account = accounts |> getAccount split.Account
-        // based on the account type,
-        // decide how its value contributes to the balance
-        match account.Type with
-        | AssetAccount -> split.Value
-        | BankAccount -> split.Value
-        | CashAccount -> split.Value
-        | CreditAccount -> split.Value
-        | EquityAccount -> amount0
-        | ExpenseAccount -> amount0
-        | IncomeAccount -> amount0
-        | LiabilityAccount -> split.Value
-        | ReceivableAccount -> split.Value
-        | RootAccount -> amount0
-        )
-    |> sumAmounts
-
-let calculateBalanceOfTransactions
-    transactions accounts prices baseCurrency: Amount =
-    transactions
-    |> List.fold
-           (fun sum transaction ->
-                let netBalance =
-                    transactionNetBalance
-                        transaction accounts prices baseCurrency
-                sum |> addAmount netBalance
-            )
-           amount0
-
-let calculateBalanceOnTime
-    time (transactions: Transaction list) accounts prices baseCurrency =
-        
-    transactions
-    // filter transactions on or before the time
-    |> List.filter (fun t -> t.DatePosted <= time)
-    // group transactions by days
-    |> List.groupBy (fun t -> t.DatePosted.Date)
-    // calculate balance for each days
-    |> List.map
-           (fun (day, dayTransactions) ->
-                    (day, calculateBalanceOfTransactions
-                              dayTransactions accounts prices baseCurrency))
-    // calculate sum of all balances
-    |> List.fold
-           (fun sum (_, dayBalance) -> sum |> addAmount dayBalance)
-           amount0
 
 let withAccount accountType =
     { Name = "some account"; Id = newId(); Type = accountType
@@ -147,24 +93,3 @@ let ``receivable is positive``() =
 [<Fact>]
 let ``root account is neutral``() =
     testNetBalanceOfAccountType RootAccount Neutral
-
-[<Fact>]
-let ``can calculate balance of transactions on time``() =
-    let assets = withAccount AssetAccount
-    let opening = withAccount EquityAccount
-    let accounts = [ assets; opening ] |> toAccountsMap
-    
-    let baseTime = withDate 2020 06 14
-    let assetsAmount = amount1 100
-    
-    let prices = []
-    
-    let transactions =
-        [ withTransaction assetsAmount (baseTime |> addDays 1) opening assets ]
-    
-    let balance =
-        calculateBalanceOnTime
-            (baseTime |> addDays 2) transactions accounts prices baseCurrency
-    
-    test <@ balance = assetsAmount @>
-    

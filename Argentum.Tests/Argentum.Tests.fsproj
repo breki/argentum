@@ -11,7 +11,8 @@
         <Compile Include="Builders.fs" />
         <Compile Include="amounts arithmetic.fs" />
         <Compile Include="calculating exchange rates.fs" />
-        <Compile Include="calculating balance.fs" />
+        <Compile Include="transaction math.fs" />
+        <Compile Include="calculating total balances.fs" />
         <Compile Include="XmlTests\ParsingHelpers.fs" />
         <Compile Include="XmlTests\parsing XML.fs" />
         <Compile Include="XmlTests\parsing slots.fs" />
