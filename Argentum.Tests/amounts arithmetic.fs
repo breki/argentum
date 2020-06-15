@@ -5,21 +5,6 @@ open FsUnit
 open Xunit
 open Swensen.Unquote
 
-let addAmount (amountA: Amount) (amountB: Amount) =
-    match amountA.Divisor, amountB.Divisor with
-    | (divisorA, divisorB) when divisorA = divisorB ->
-        amount2 (amountA.Dividend + amountB.Dividend) divisorA
-    | (divisorA, divisorB) when divisorA % divisorB = 0 ->
-        let multiplier = divisorA / divisorB
-        amount2 (amountA.Dividend + amountB.Dividend * multiplier) divisorA
-    | (divisorA, divisorB) when divisorB % divisorA = 0 ->
-        let multiplier = divisorB / divisorA
-        amount2 (amountA.Dividend * multiplier + amountB.Dividend) divisorB
-    | (divisorA, divisorB) ->
-        let sumDivisor = divisorA * divisorB
-        amount2
-            (amountA.Dividend * divisorB + amountB.Dividend * divisorA)
-            sumDivisor
 [<Fact>]
 let ``amounts are same if dividends and divisors are the same``() =
     test <@ amount2 100 200 = amount2 100 200 @>

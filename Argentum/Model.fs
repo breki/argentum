@@ -23,7 +23,27 @@ type Amount (dividend: int, divisor: int) =
 
 let amount2 dividend divisor = Amount(dividend, divisor)
 let amount1 dividend = 1 |> amount2 dividend  
+let amount0 = amount1 0
 let amountNegative (amount: Amount) = amount2 -amount.Dividend amount.Divisor
+
+let addAmount (amountA: Amount) (amountB: Amount) =
+    match amountA.Divisor, amountB.Divisor with
+    | (divisorA, divisorB) when divisorA = divisorB ->
+        amount2 (amountA.Dividend + amountB.Dividend) divisorA
+    | (divisorA, divisorB) when divisorA % divisorB = 0 ->
+        let multiplier = divisorA / divisorB
+        amount2 (amountA.Dividend + amountB.Dividend * multiplier) divisorA
+    | (divisorA, divisorB) when divisorB % divisorA = 0 ->
+        let multiplier = divisorB / divisorA
+        amount2 (amountA.Dividend * multiplier + amountB.Dividend) divisorB
+    | (divisorA, divisorB) ->
+        let sumDivisor = divisorA * divisorB
+        amount2
+            (amountA.Dividend * divisorB + amountB.Dividend * divisorA)
+            sumDivisor
+
+let sumAmounts (amounts: Amount seq): Amount =
+    amounts |> Seq.fold (fun sum amount -> sum |> addAmount amount) amount0
 
 type SlotValue =
     | SlotString of string
@@ -82,6 +102,13 @@ type Account = {
     Slots: Slot[]
     ParentAccount: AccountId option
 }
+
+type Accounts = Map<AccountId, Account>
+
+let toAccountsMap (accounts: Account seq): Accounts =
+    accounts
+    |> Seq.map (fun account -> (account.Id, account))
+    |> Map.ofSeq
 
 type ReconciledState =
     | NotReconciled

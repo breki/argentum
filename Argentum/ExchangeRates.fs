@@ -11,7 +11,6 @@ let exchangeRate time fromCommodity toCommodity (prices: Price seq) =
             |> Seq.filter (fun price ->
                 price.Commodity = fromCommodity && price.Currency = toCommodity)
             |> Seq.toList
-            |> List.sortBy (fun price -> price.Time)
             |> List.partition (fun price -> price.Time < time)
         
         match (pricesBefore |> List.rev), pricesAfter with
