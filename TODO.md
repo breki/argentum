@@ -1,10 +1,8 @@
 # Argentum to do
 
-- implement net balance for all account types
-    - test common scenarios
-        - payment with cash
-        - payment with credit card
-        - payment of credit card
+
+- function for converting amount given the time
+- `transactionNetBalance` must convert to base currency 
 
 - handle this:
 ```
@@ -18,8 +16,6 @@
 - implement a balance-on-date function
     - implement a function that converts split value to EUR
 
-- implement code to parse the whole XML file
-    - implement non-recursive `parseElements`
 - introduce `Parser` and `ParserTransformer`
 
 - implement an XML reader for the model

@@ -6,29 +6,6 @@ open Argentum.Tests.Builders
 open FsUnit
 open Xunit
 open Swensen.Unquote
-
-let withAccount accountType =
-    { Name = "some account"; Id = newId(); Type = accountType
-      Commodity = CurrencyRef "EUR"; CommodityScu = 100
-      Description = None; Code = None; Slots = [||]
-      ParentAccount = None }
-
-let withTransaction amount time (fromAccount: Account) (toAccount: Account) =
-    let split1 = { Id = newId(); Memo = None; Action = None
-                   ReconciledState = Reconciled; Value = amount
-                   Quantity = amountNegative amount
-                   Account = fromAccount.Id
-                   Slots = [||] }
-    let split2 = { Id = newId(); Memo = None; Action = None
-                   ReconciledState = Reconciled; Value = amount
-                   Quantity = amount
-                   Account = toAccount.Id
-                   Slots = [||] }
-
-    { Id = newId(); Currency = CurrencyRef "EUR"; DateEntered = time
-      DatePosted = time; Description = ""; Slots = [||]
-      Splits = [| split1; split2 |] }
-
 let baseCurrency = CurrencyRef "EUR"
 
 type NetBalanceEffect = Positive | Neutral | Negative
