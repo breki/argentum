@@ -28,8 +28,11 @@
       </e>
       <e p="Argentum.sln" t="IncludeFlat" />
       <e p="Argentum.Tests" t="IncludeRecursive">
+        <e p="amounts arithmetic.fs" t="Include" />
         <e p="Argentum.Tests.fsproj" t="IncludeRecursive" />
         <e p="bin" t="ExcludeRecursive" />
+        <e p="Builders.fs" t="Include" />
+        <e p="calculating balance.fs" t="Include" />
         <e p="calculating exchange rates.fs" t="Include" />
         <e p="obj" t="ExcludeRecursive" />
         <e p="Program.fs" t="Include" />

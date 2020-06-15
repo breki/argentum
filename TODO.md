@@ -1,6 +1,7 @@
 # Argentum to do
 
 - implement a balance-on-date function
+    - create a dictionary of accounts
     - finds all transactions <= date
 
 - implement code to parse the whole XML file

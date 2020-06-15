@@ -2,14 +2,28 @@
 
 open System
 
-type Amount = {
-    Dividend: int
-    Divisor: int
-}
+type Amount (dividend: int, divisor: int) =
+    member this.Dividend = dividend
+    member this.Divisor = divisor
 
-let amount2 dividend divisor = { Dividend = dividend; Divisor = divisor }
+    member this.Value = (float this.Dividend) / (float this.Divisor)
+    
+    override this.Equals (o: obj) =
+        let otherAmount = (o :?> Amount)
+        this.Value = otherAmount.Value 
+
+    override this.GetHashCode() =
+        let hash1 = (13 * 7) + this.Dividend.GetHashCode()
+        (hash1 * 7) + this.Divisor.GetHashCode()        
+    
+    interface IComparable with
+        member this.CompareTo (o: obj) =
+            this.Value.CompareTo((o :?> Amount).Value)
+        
+
+let amount2 dividend divisor = Amount(dividend, divisor)
 let amount1 dividend = 1 |> amount2 dividend  
-let amountFloat amount = ((float amount.Dividend) / (float amount.Divisor))
+let amountNegative (amount: Amount) = amount2 -amount.Dividend amount.Divisor
 
 type SlotValue =
     | SlotString of string

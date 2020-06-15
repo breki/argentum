@@ -1,22 +1,18 @@
 ﻿module Argentum.Tests.``calculating exchange rates``
 
-open System
 open Argentum.ExchangeRates
 open Argentum.Model
+open Argentum.Tests.Builders
 open FsUnit
 open Xunit
 open Swensen.Unquote
 
-let withPrice currencyId time amount =
-    { Id = Guid.NewGuid(); Commodity = CurrencyRef currencyId
-      Currency = CurrencyRef "EUR"
-      Time = time
-      Source = UserPrice
-      PriceType = None; Value = amount2 (amount*10000. |> int) 10000  }
+[<Fact>]
+let ``Exchange rate between the same account is 1``() =
+    let time = withDate 2020 06 13
+    let currency = CurrencyRef "EUR"
 
-let withDate year month day = DateTime(year, month, day)
-
-let addDays days (time: DateTime) = time.AddDays (days |> float)
+    test <@ exchangeRate time currency currency [] = (amount1 1) @>
 
 [<Fact>]
 let ``Can get exchange rate for exact date``() =
@@ -24,7 +20,7 @@ let ``Can get exchange rate for exact date``() =
     let time = withDate 2020 06 13
     
     let prices = [
-        (withPrice "USD" time (expectedPrice |> amountFloat))
+        (withPrice "USD" time (expectedPrice.Value))
     ]
 
     test <@ exchangeRate time (CurrencyRef "USD") (CurrencyRef "EUR") prices
@@ -36,7 +32,7 @@ let ``Can get exchange rate if time is before any prices``() =
     let time = withDate 2020 06 13
     
     let prices = [
-        (withPrice "USD" (time |> addDays 3) (expectedPrice |> amountFloat))
+        (withPrice "USD" (time |> addDays 3) (expectedPrice.Value))
     ]
 
     test <@ exchangeRate time (CurrencyRef "USD") (CurrencyRef "EUR") prices
@@ -49,8 +45,8 @@ let ``Can get exchange rate if time is between prices``() =
     let time = withDate 2020 06 13
     
     let prices = [
-        (withPrice "USD" (time |> addDays -3) (expectedPrice |> amountFloat))
-        (withPrice "USD" (time |> addDays 3) (somePrice |> amountFloat))
+        (withPrice "USD" (time |> addDays -3) (expectedPrice.Value))
+        (withPrice "USD" (time |> addDays 3) (somePrice.Value))
     ]
 
     test <@ exchangeRate time (CurrencyRef "USD") (CurrencyRef "EUR") prices
@@ -62,7 +58,7 @@ let ``Can get exchange rate if time is after all prices``() =
     let time = withDate 2020 06 13
     
     let prices = [
-        (withPrice "USD" (time |> addDays -3) (expectedPrice |> amountFloat))
+        (withPrice "USD" (time |> addDays -3) (expectedPrice.Value))
     ]
 
     test <@ exchangeRate time (CurrencyRef "USD") (CurrencyRef "EUR") prices
