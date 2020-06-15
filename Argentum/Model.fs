@@ -110,6 +110,9 @@ let toAccountsMap (accounts: Account seq): Accounts =
     |> Seq.map (fun account -> (account.Id, account))
     |> Map.ofSeq
 
+let getAccount (accountId: AccountId) (accounts: Accounts) =
+    accounts.[accountId]
+
 type ReconciledState =
     | NotReconciled
     | Reconciled

@@ -1,8 +1,22 @@
 # Argentum to do
 
+- implement net balance for all account types
+    - test common scenarios
+        - payment with cash
+        - payment with credit card
+        - payment of credit card
+
+- handle this:
+```
+      <split:id type="guid">de5d8ddf5e9a489281976ea3fd3a61d4</split:id>
+      <split:reconciled-state>n</split:reconciled-state>
+      <split:value>5000/100</split:value>
+      <split:quantity>3279/100</split:quantity>
+      <split:account type="guid">a5f2092903ca4368be1b112b5b92329e</split:account> - PayPal EUR
+```
+
 - implement a balance-on-date function
-    - create a dictionary of accounts
-    - finds all transactions <= date
+    - implement a function that converts split value to EUR
 
 - implement code to parse the whole XML file
     - implement non-recursive `parseElements`
